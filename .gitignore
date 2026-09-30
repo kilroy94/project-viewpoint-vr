@@ -40,3 +40,5 @@ experiments/zombiebuddy-harness/dist/
 .DS_Store
 Thumbs.db
 hs_err_pid*.mdmp
+
+/viewpoint/build/

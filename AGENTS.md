@@ -1,9 +1,11 @@
-# Research workspace boundary
+# Project Viewpoint VR workspace
 
-Read README.md and research/final-report.md before continuing. The user's request is preserved in research/original-request.md.
+Read README.md, docs/VIEWPOINT-PLAN.md and viewpoint/VALIDATION.md first.
 
-For the current preserved 0.11.0 implementation, also read docs/PZ3D-BASELINE.md and experiments/zombiebuddy-harness/VALIDATION.md. The original request/report are historical research; they do not describe the current feature set. The baseline includes hand-interaction source without claiming new in-game validation. Do not infer authorization for another renderer or architecture refactoring from that documentation.
+The user authorized this separate project and its first research/implementation milestone. Viewpoint is the sole future renderer target. Reuse worthwhile PZ3D VR code and discard incompatible adapters; do not maintain dual renderer support by default. The inherited experiments, baseline docs and research report are historical PZ3D references, not current Viewpoint features or a request to run their installers.
 
-The user authorized the standalone OpenXR diagnostic, 3D scene, renderer adapter, and explicitly requested the ZombieBuddy test harness and its OpenXR integration. The user confirmed live desktop stereo works in version 0.2.0. Build and test the harness in the workspace and package it for the user's in-game capture test. Do not launch Project Zomboid, run either existing mod's entry point or installer, or write to the working game installation, Workshop folders, or Zomboid user data. Tests may define/retransform copied classes without initialization or executing game/mod entry points. The user will install and perform the first in-game test. Prefer workspace-local SteamVR configuration/log overrides and process-local runtime selection over global changes.
+Current implementation: offline pinned binary inspection and camera math. Use viewpoint/Test.ps1. No Viewpoint runtime interception or installable VR mod exists yet. Keep documentation honest about that boundary.
 
-Installed copied binaries are authoritative. PZ3D names such as Renderer.Frame.ad and Renderer.nw are actual installed names, not stable APIs. For the pinned 0.3.0 implementation prefer reference/pz3d/0.3.0/vineflower; reference/pz3d/vineflower and CFR output are historical comparisons. Do not treat decompiler output as buildable source. Record uncertainty rather than inferring runtime success from static code.
+Do not launch Project Zomboid, execute existing mod entry points/installers, or write to game installations, Workshop folders or Zomboid user data. The user performs installation and in-game tests. Tests may inspect or define/retransform copied classes without initialization. Prefer local SteamVR configuration/log overrides and process-local runtime selection.
+
+Installed copied binaries are authoritative; viewpoint/pins.json records exact hashes. Internals are not stable APIs. Decompiled output is evidence, not buildable source to republish. Never infer runtime success from static checks. Keep proprietary JARs, decompilation, generated builds, personal configuration and logs ignored. Retain clear automated versus live validation records.
