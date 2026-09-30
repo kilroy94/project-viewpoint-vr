@@ -10,12 +10,43 @@ $ErrorActionPreference = 'Stop'
 if ($LASTEXITCODE -ne 0) { throw 'Contract checker tests failed' }
 & python "$PSScriptRoot/inspect_contract.py" --java-home $JavaHome --game $GameJar --viewpoint $ViewpointJar --zombiebuddy $ZombieBuddyJar
 if ($LASTEXITCODE -ne 0) { throw 'Unsupported binary or contract mismatch' }
-$classes = "$PSScriptRoot/build/classes"
-New-Item -ItemType Directory -Force $classes | Out-Null
+$run = Join-Path "$PSScriptRoot/build/runs" ([guid]::NewGuid().ToString('N'))
+$classes = "$run/classes"
+$tests = "$run/tests"
+$fixtures = "$run/fixtures"
+New-Item -ItemType Directory -Force $classes,$tests,$fixtures | Out-Null
 $gameCopy = "$PSScriptRoot/build/inputs/game.jar"
-# Explicit source list prevents inherited harness code from entering this build.
-& "$JavaHome/bin/javac.exe" -Xlint:all -cp $gameCopy -d $classes "$PSScriptRoot/src/viewpointvr/StereoCamera.java" "$PSScriptRoot/test/viewpointvr/StereoCameraTest.java"
-if ($LASTEXITCODE -ne 0) { throw 'Camera compilation failed' }
-& "$JavaHome/bin/java.exe" -ea -cp "$classes;$gameCopy" viewpointvr.StereoCameraTest
-if ($LASTEXITCODE -ne 0) { throw 'Camera tests failed' }
+$loaderCopy = "$PSScriptRoot/build/inputs/zombiebuddy.jar"
+$viewpointCopy = "$PSScriptRoot/build/inputs/viewpoint.jar"
+$sources = Get-ChildItem "$PSScriptRoot/src" -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
+& "$JavaHome/bin/javac.exe" -Xlint:all -cp "$gameCopy;$loaderCopy" -d $classes $sources
+if ($LASTEXITCODE -ne 0) { throw 'Baseline compilation failed' }
+$testSources = Get-ChildItem "$PSScriptRoot/test" -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
+& "$JavaHome/bin/javac.exe" -Xlint:all -cp "$classes;$gameCopy;$loaderCopy" -d $tests $testSources
+if ($LASTEXITCODE -ne 0) { throw 'Test compilation failed' }
+& "$JavaHome/bin/javac.exe" -Xlint:all -d $fixtures "$PSScriptRoot/test-fixtures/viewpoint/SceneDrawer.java"
+if ($LASTEXITCODE -ne 0) { throw 'Synthetic fixture compilation failed' }
+$testClasspath = "$tests;$classes;$gameCopy;$loaderCopy"
+foreach ($test in @('viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest')) {
+    & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath $test $fixtures
+    if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
+}
+@'
+Premain-Class: viewpointvr.instrument.TestAgent
+Can-Retransform-Classes: true
+
+'@ | Set-Content "$run/agent.mf" -Encoding ASCII
+& "$JavaHome/bin/jar.exe" --create --file "$run/test-agent.jar" --manifest "$run/agent.mf" -C $tests viewpointvr/instrument/TestAgent.class
+if ($LASTEXITCODE -ne 0) { throw 'Test agent packaging failed' }
+# Use a relative logging path: HotSpot -Xlog parses the colon in a Windows absolute path as an option separator.
+Push-Location $run
+try {
+    & "$JavaHome/bin/java.exe" -Xverify:all -ea '-Xlog:class+init=info:file=class-init.log' "-javaagent:$run/test-agent.jar" -cp "$testClasspath;$viewpointCopy" viewpointvr.instrument.CopiedBinaryTest $viewpointCopy
+    if ($LASTEXITCODE -ne 0) { throw 'Copied-binary retransformation failed' }
+} finally { Pop-Location }
+& python "$PSScriptRoot/verify_init_log.py" "$run/class-init.log"
+if ($LASTEXITCODE -ne 0) { throw 'Initialization boundary violated' }
+& "$JavaHome/bin/jar.exe" --create --file "$run/viewpoint-vr-core.jar" -C $classes .
+if ($LASTEXITCODE -ne 0) { throw 'Core packaging failed' }
+Write-Host "Test evidence and non-installable core JAR: $run"
 Write-Host 'Offline Viewpoint baseline passed. No game/mod entry point or OpenGL context was run.'

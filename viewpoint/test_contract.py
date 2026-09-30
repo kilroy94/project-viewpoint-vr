@@ -2,9 +2,19 @@ import tempfile
 from pathlib import Path
 import unittest
 from inspect_contract import method_block, ordered_calls, pinned_copy
+from verify_init_log import verify
 
 
 class ContractTest(unittest.TestCase):
+    def test_initialization_log(self):
+        safe = "Initializing 'java/lang/Object'\nStart class verification for: viewpoint.SceneDrawer\n"
+        verify(safe)
+        for package in ["viewpoint/SceneDrawer", "zombie/GameWindow", "me/zed_0xff/zombie_buddy/Loader"]:
+            with self.assertRaises(ValueError):
+                verify(safe + "Initializing '" + package + "'\n")
+        with self.assertRaises(ValueError):
+            verify("")
+
     def test_descriptor_and_ambiguity(self):
         text = "  private void draw();\n    descriptor: ()V\n    Code:\n"
         self.assertEqual(method_block(text, "private void draw();", "()V"), text)

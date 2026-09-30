@@ -2,9 +2,9 @@
 
 Read README.md, docs/VIEWPOINT-PLAN.md and viewpoint/VALIDATION.md first.
 
-The user authorized this separate project and its first research/implementation milestone. Viewpoint is the sole future renderer target. Reuse worthwhile PZ3D VR code and discard incompatible adapters; do not maintain dual renderer support by default. The inherited experiments, baseline docs and research report are historical PZ3D references, not current Viewpoint features or a request to run their installers.
+The user authorized this separate project and progression to its next implementation step. Viewpoint is the sole future renderer target. Reuse worthwhile PZ3D VR code and discard incompatible adapters; do not maintain dual renderer support by default. The inherited experiments, baseline docs and research report are historical PZ3D references, not current Viewpoint features or a request to run their installers.
 
-Current implementation: offline pinned binary inspection and camera math. Use viewpoint/Test.ps1. No Viewpoint runtime interception or installable VR mod exists yet. Keep documentation honest about that boundary.
+Current implementation: offline pinned binary inspection, camera math, pair lifecycle and dormant entry transform. Read viewpoint/RENDER-BOUNDARY.md and use viewpoint/Test.ps1. The copied target is verified/retransformed without initialization; synthetic fixtures exercise the hook. No production driver/installer or concrete Viewpoint rendering backend exists yet. The generated core JAR is not an installable mod. Keep documentation honest about that boundary.
 
 Do not launch Project Zomboid, execute existing mod entry points/installers, or write to game installations, Workshop folders or Zomboid user data. The user performs installation and in-game tests. Tests may inspect or define/retransform copied classes without initialization. Prefer local SteamVR configuration/log overrides and process-local runtime selection.
 
