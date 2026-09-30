@@ -1,0 +1,1 @@
+package viewpoint.platform; public final class HotReload { public static int generation; }

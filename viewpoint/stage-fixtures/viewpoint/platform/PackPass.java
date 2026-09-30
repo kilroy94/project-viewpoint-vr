@@ -1,0 +1,1 @@
+package viewpoint.platform; public final class PackPass { public enum Stage { TRANSLUCENT,COMPOSITE,FINAL } }

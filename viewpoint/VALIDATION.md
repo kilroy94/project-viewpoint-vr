@@ -1,5 +1,17 @@
 # Viewpoint baseline validation
 
+## Development baseline 0.3.0: concrete native-stage adapter
+
+2026-09-30, Windows x64 / JDK 25, same pinned game/Viewpoint inputs and audited ZombieBuddy temporary fix.
+
+The new `ViewpointBackend` executes through the production entry/stage transforms against independent synthetic native classes. **219 stage-fixture checks** passed across inactive behavior, complete pairs, native begin returning false, partial model preparation, first/right-eye draw failure, finish/copy/cleanup/restoration failures, target-size mismatch, frame recycling, renderer-generation changes and unsupported camera modes. Checks establish one shared preparation/frame-index advance, equal frozen delta time, two distinct eye matrices, one centered hand camera, per-eye far visibility, once-per-pair shadow/upload scheduling, deferred release and restored native output metadata. These are synthetic state tests, not GL or game execution.
+
+`StageBinaryTest` resolved the backend's entire metadata contract against actual copied classes without initialization. The JDK verifier accepted all **three new transformed classes** (WorldRenderer, FarPass and TemporalPass), covering **29 stage anchors**. Each actual class was retransformed twice and the test transformer was removed afterward. Already patched input was rejected. The existing SceneDrawer verification/retransformation tests also passed, for four native target classes in total. Both HotSpot logs passed the no-game/mod-initialization audit.
+
+The existing 256 camera checks, 485 lifecycle checks, 30 entry-fixture checks, 17 copied-entry checks, four Python cases and 21 original contract anchors also passed. The game's bundled JOML emits its existing Java 25 Unsafe deprecation warning during matrix fixture tests. Generated output remains isolated by run; the core JAR contains 29 production classes and no proprietary classes, test agent or fixtures.
+
+No game, native renderer draw, OpenGL context or headset was launched. No saved graphics configuration or installed mod/game files were changed. A concrete native backend now exists, but its Output implementation is synthetic: real GL targets/capture and a live all-target loader/activation path remain absent. Producer visibility, actual images, picking, effect behavior and performance remain unvalidated in-game. The symmetric first-person diagnostic scope does not establish asymmetric headset rendering or VR gameplay support.
+
 ## Development baseline 0.2.0: lifecycle and dormant entry hook
 
 2026-09-30, Windows x64 / JDK 25, pinned game/Viewpoint inputs and the audited ZombieBuddy B42.21 temporary fix.

@@ -1,6 +1,6 @@
 # Render boundary milestone (0.2.0)
 
-This milestone implements the lifecycle/transform-verification step in the integration plan. It does not split Viewpoint's renderer yet. The driver contract and entry hook are executable and tested; the concrete Viewpoint backend is still absent.
+This document describes the preserved 0.2.0 lifecycle/entry contract. The subsequent [0.3.0 native-stage adapter](NATIVE-STAGES.md) now implements a concrete Viewpoint backend; real output/capture and live activation remain absent.
 
 ## Entry hook
 
@@ -26,8 +26,8 @@ Skipped preparation still releases partial preparation and restores caller state
 
 The core does not retain game frames, run simulation, bind an FBO or assert that a snapshot stays valid on its own. The backend must implement those concrete operations and validation. Tests simulate output state and invalidation; actual OpenGL state restoration is not established by those tests.
 
-## Next concrete adapter work
+## Adapter work identified at 0.2.0
 
 Implement a version-pinned Viewpoint backend that separates `WorldRenderer.begin`'s shared uploads/preparation from per-eye matrices/drawing, defers texture/model/retirement cleanup to pair end, and preserves per-eye far frusta while freezing shared far uploads. Do not use the borrowed whole-frame callback as either eye's draw operation.
 
-The backend must also freeze/disable temporal and shader-pack histories, control producer culling, handle asymmetric projection effects and own two output FBOs before an in-game stereo capture package is credible. The entry seam deliberately leaves all of those native methods unchanged in this milestone. See [the integration plan](../docs/VIEWPOINT-PLAN.md) for the exact hazards and acceptance sequence.
+The 0.3.0 adapter addresses the stage split and diagnostic history policy using additional native call-site transforms. Producer culling, asymmetric projection effects and real output FBOs remain relevant before expanding beyond a narrow synthetic-camera capture test. See [native stages](NATIVE-STAGES.md) and [the integration plan](../docs/VIEWPOINT-PLAN.md) for current status.

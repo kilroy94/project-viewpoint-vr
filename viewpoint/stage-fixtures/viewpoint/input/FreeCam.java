@@ -1,0 +1,1 @@
+package viewpoint.input; public final class FreeCam { public static boolean active; }

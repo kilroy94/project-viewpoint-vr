@@ -1,0 +1,1 @@
+package viewpoint.core; public final class CameraSquares { public boolean seated; }
