@@ -25,6 +25,17 @@ public final class ControllerBridgeTest {
         publish(.6f,true);tick(input);ok(vr.getAxisValue(0)==.6f&&vr.isButtonPressed(0),"state reaches consumer");
         int presses=input.presses;tick(input);ok(input.presses==presses,"held input has no duplicate edge");
         ok(input.getController(0)==physical&&physical.getAxisValue(0)==.75f,"physical input unchanged");
+        pzvr.interaction.HandUse.installed=true;
+        pzvr.interaction.HandUse.configure(2,2);publish(0,false);tick(input);
+        var grip=new VrControllerState.Hand("touch",true,0,0,0,1,false,false,false,false);
+        ControllerBridge.publish(new VrControllerState(1,System.nanoTime(),true,grip,grip));tick(input);
+        ok(vr.isButtonPressed(4)&&!vr.isButtonPressed(5),"only reserved right grip bumper suppressed");
+        pzvr.interaction.HandUse.configure(2,0);publish(0,false);tick(input);
+        ControllerBridge.publish(new VrControllerState(1,System.nanoTime(),true,grip,grip));tick(input);
+        ok(!vr.isButtonPressed(4)&&!vr.isButtonPressed(5),"either interaction grip masks both bumpers");
+        pzvr.interaction.HandUse.configure(0,2);tick(input);
+        ok(!vr.isButtonPressed(4)&&!vr.isButtonPressed(5),"Off held grip requires neutral before bumper restore");
+        publish(0,false);tick(input);publish(.6f,true);tick(input);
         int releases=input.releases; ControllerBridge.clear();tick(input);ok(input.releases==releases+1,"loss delivers release edge");ok(vr.getAxisValue(0)==0&&vr.getAxisValue(4)==-1&&!vr.isButtonPressed(0),"loss neutral");
         publish(.6f,true);tick(input);ok(!vr.isButtonPressed(0),"held resume blocked");
         publish(0,false);tick(input);publish(.6f,true);tick(input);ok(vr.isButtonPressed(0),"neutral rearms");

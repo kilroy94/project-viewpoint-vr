@@ -1,7 +1,7 @@
 name=PZ3D Stereo Capture Test [Java]
 id=PZ3DVRTest
 author=Local prototype
-modversion=0.10.1
+modversion=0.11.0
 versionMin=42.21.0
 versionMax=42.21.0
 require=\ZombieBuddy,pz3d

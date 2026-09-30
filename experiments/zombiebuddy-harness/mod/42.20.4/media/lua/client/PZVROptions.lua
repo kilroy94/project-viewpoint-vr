@@ -50,8 +50,17 @@ local aim = options:addComboBox("turnAim", "Hold ready/aim")
 for _, label in ipairs({"Left trigger", "Left bumper / left grip", "Right bumper / right grip", "Right stick click"}) do aim:addItem(label, label == "Left trigger") end
 options:addDescription("While XR gameplay is active, reserve the right stick for horizontal turning and the selected binding for ready/aim. Automatic prefers the player's assigned physical gamepad, otherwise VR controllers. Snap once per deflection; center the stick to rearm. Menus retain native controls. Turning Off restores native aiming. Turning temporarily disarms motion melee; release the attack trigger after the turn to rearm. Return controls to neutral after settings changes.")
 
+options:addSeparator()
+local handUse = options:addComboBox("handUseMode", "Hand proximity interaction")
+for _, label in ipairs({"Off", "Diagnostics only", "Live"}) do handUse:addItem(label, label == "Off") end
+local useHand = options:addComboBox("handUseHand", "Interaction grip")
+for _, label in ipairs({"Either hand", "Left hand", "Right hand"}) do useHand:addItem(label, label == "Right hand") end
+options:addDescription("Reach within 25 cm of a reachable world object and squeeze the selected grip once to use it. Release between presses. Uses PZ3D's normal short-press action, including native door/window handling. No hold-to-climb action. Diagnostics log the target without using it. Requires tracked controllers; synthetic arms cannot interact.")
+options:addDescription("While enabled, the selected grip is reserved for interaction, including in menus: its virtual gamepad bumper and VR ready/aim binding are disabled. Choose a different ready/aim binding (for example Left trigger), or set interaction Off to restore the grip. Physical gamepads are unchanged. Single player prototype; logs use [PZ3D VR Use].")
+
 local function sync()
     if not PZVRStereo or not PZVRStereo.setHotkeys then return end
+    if PZVRStereo.setHandInteraction then PZVRStereo.setHandInteraction(options:getOption("handUseMode"):getValue() - 1, options:getOption("handUseHand"):getValue() - 1) end
     if PZVRStereo.setTurning then
         local angles = {15, 30, 45, 60, 90}
         PZVRStereo.setTurning(options:getOption("turnMode"):getValue() - 1, angles[options:getOption("turnAngle"):getValue()], options:getOption("turnSpeed"):getValue(), options:getOption("turnSource"):getValue() - 1, options:getOption("turnAim"):getValue() - 1)

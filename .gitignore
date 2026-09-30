@@ -28,3 +28,15 @@ experiments/zombiebuddy-harness/dist/
 *.pem
 *.key
 *.log
+
+# Local baseline backups, compiler output and editor scratch files.
+/.baseline-artifacts/
+*.class
+*.tmp
+*.swp
+*.swo
+*~
+.idea/
+.DS_Store
+Thumbs.db
+hs_err_pid*.mdmp

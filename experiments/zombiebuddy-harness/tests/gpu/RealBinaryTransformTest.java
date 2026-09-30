@@ -45,6 +45,27 @@ public final class RealBinaryTransformTest {
         if(!pzvr.input.ControllerBridge.installed) throw new AssertionError("Controller hooks unavailable");
         pzvr.turn.TurnInstallation.install(InstrumentationAgent.instrumentation,loader);
         if(!pzvr.turn.TurnRuntime.installed) throw new AssertionError("Turn hooks unavailable");
+        pzvr.interaction.UseInstallation.install(InstrumentationAgent.instrumentation,loader);
+        if(!pzvr.interaction.HandUse.installed) throw new AssertionError("Hand use hooks unavailable");
+        var main=Class.forName("com.pavelvoronin.pz3d.Main",false,loader);
+        main.getDeclaredMethod("b",boolean.class);
+        for(String name:List.of("jq","jr")) main.getDeclaredField(name);
+        var routing=main.getDeclaredMethod("controlAccess").getReturnType();
+        for(String name:List.of("actions","look"))if(routing.getDeclaredField(name).getType()!=boolean.class)throw new AssertionError("Use access shape");
+        var world=main.getDeclaredField("jr").getType();var controller=main.getDeclaredField("jq").getType();
+        var scene=world.getDeclaredMethod("scene").getReturnType();scene.getDeclaredMethod("targets");world.getDeclaredMethod("itemTargets");
+        var interaction=Class.forName("com.pavelvoronin.pz3d.Interaction",false,loader);
+        var choice=interaction.getDeclaredMethod("choose",zombie.characters.IsoPlayer.class,controller,world,org.joml.Vector3f.class,org.joml.Vector3f.class,boolean.class).getReturnType();
+        for(String name:List.of("object","tap","distance","container"))choice.getDeclaredMethod(name);
+        var edge=Class.forName("com.pavelvoronin.pz3d.Traversal$Edge",false,loader);
+        edge.getDeclaredConstructor(zombie.iso.IsoObject.class,int.class,int.class,boolean.class,zombie.iso.IsoDirections.class);
+        choice.getDeclaredConstructor(zombie.iso.IsoObject.class,edge,float.class,String.class,zombie.inventory.ItemContainer.class);
+        for(String name:List.of("WorldHit","WorldItems$Pick")){
+            var target=Class.forName("com.pavelvoronin.pz3d."+name,false,loader);target.getDeclaredMethod("object");
+            var box=target.getDeclaredMethod(name.equals("WorldHit")?"box":"bounds").getReturnType();
+            for(String bound:List.of("x0","y0","z0","x1","y1","z1"))box.getDeclaredMethod(bound);
+        }
+        System.out.println("Hand-use copied-binary retransformation passed: 3 targets, including composition with turning Main.tick; no initialization.");
         System.out.println("Turning copied-binary retransformation passed: 3 targets, including composition with melee NativeAvatar hooks.");
         System.out.println("Controller copied-binary retransformation passed: 3 classes without initialization.");
         System.out.println("Melee copied-binary retransformation passed: 4 additional classes, without initialization or combat execution.");

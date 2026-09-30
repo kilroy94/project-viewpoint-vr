@@ -26,6 +26,7 @@ local core = {isDoingTextEntry=function() return typing == true end}
 function getCore() return core end
 MainOptions = {instance={isVisible=function() return visible == true end}}
 PZVRStereo = {
+    setHandInteraction=function(...) handUse={...} end,
     setTurning=function(...) turning={...} end,
     setHotkeys=function(...) applied={...}; syncCount=(syncCount or 0)+1 end,
     blockHotkeys=function(value) blocked=value end,
@@ -64,6 +65,11 @@ assert(not string.find(options:getOption("armReachPercent").name, "%", 1, true))
 Events.OnMainMenuEnter.fire()
 assert(applied[1]==70 and applied[2]==3 and applied[4]==7 and applied[6]==5 and applied[7]==68)
 assert(armReach==150)
+assert(handUse[1]==0 and handUse[2]==2)
+options:getOption("handUseMode"):setValue(3)
+options:getOption("handUseHand"):setValue(1)
+options:apply()
+assert(handUse[1]==2 and handUse[2]==0)
 assert(turning[1]==0 and turning[2]==30 and turning[3]==90 and turning[4]==0 and turning[5]==0)
 options:getOption("turnMode"):setValue(3)
 options:getOption("turnAngle"):setValue(4)
@@ -98,6 +104,8 @@ assert(meleeMode==1)
 assert(controllerMode==3)
 assert(hybrid==true)
 PZAPI.ModOptions:save()
+options:getOption("handUseMode"):setValue(1)
+options:getOption("handUseHand"):setValue(3)
 assert(string.find(saved,"keybind|PZ3DVRTest|xr|30",1,true))
 -- Simulate reloading persisted settings, rather than trusting in-memory values.
 options:getOption("xr"):setValue(70)
@@ -109,6 +117,7 @@ options:getOption("controllerMode"):setValue(1)
 options:getOption("allowMotionMeleeWithGamepad"):setValue(false)
 PZAPI.ModOptions:load()
 assert(applied[1]==30 and applied[2]==0 and applied[7]==0)
+assert(handUse[1]==2 and handUse[2]==0)
 assert(armReach==125)
 assert(turning[1]==2 and turning[2]==60 and turning[3]==120 and turning[4]==2 and turning[5]==3)
 assert(meleeMode==1)

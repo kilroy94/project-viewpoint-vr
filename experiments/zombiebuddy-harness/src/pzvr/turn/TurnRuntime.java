@@ -21,6 +21,8 @@ public final class TurnRuntime {
     private static Object pad,sourceIdentity;
     private static long tickTime;
     private static boolean faulted;
+    private static volatile boolean bindingsChanged;
+    public static void bindingsChanged(){bindingsChanged=true;}
     public static void configure(int mode,int snap,int speed,int source,int aim){
         Settings next=new Settings(Math.max(0,Math.min(2,mode)),java.util.Set.of(15,30,45,60,90).contains(snap)?snap:30,
             Math.max(30,Math.min(240,speed)),Math.max(0,Math.min(2,source)),Math.max(0,Math.min(3,aim)));
@@ -51,6 +53,7 @@ public final class TurnRuntime {
     private static void clear(){pad=null;sourceIdentity=null;ready=false;aimArmed=false;tickTime=0;filter.reset();}
     public static void tick(){
         try {
+            if(bindingsChanged){clear();bindingsChanged=false;}
             if(!context()){clear();return;}
             IsoPlayer p=IsoPlayer.getInstance();
             if(p==null||p.isDead()||!NativeLocomotion.firstPerson(p)||!NativeAvatar.controls(p)){clear();return;}
@@ -77,6 +80,7 @@ public final class TurnRuntime {
                     if(!state.usable(now)){clear();return;}
                     var l=state.left();var r=state.right();x=r.x();y=r.y();
                     held=switch(cfg.aim()){case 1->l.squeeze()>.65f;case 2->r.squeeze()>.65f;case 3->r.stick();default->l.trigger()>.7f;};
+                    if(cfg.aim()==1&&pzvr.interaction.HandUse.reserves(0)||cfg.aim()==2&&pzvr.interaction.HandUse.reserves(1))held=false;
                     pad=assigned!=null&&ControllerBridge.owns(id)?assigned:null;
                 }
             }finally{raw=false;}

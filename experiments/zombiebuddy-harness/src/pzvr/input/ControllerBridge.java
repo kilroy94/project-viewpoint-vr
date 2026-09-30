@@ -19,6 +19,7 @@ public final class ControllerBridge {
         if(reserveRightTrigger!=reserve) { reserveRightTrigger=reserve; mapper.invalidate(); }
     }
     private static final GamepadMapper mapper=new GamepadMapper();
+    public static synchronized void invalidateMapping(){mapper.invalidate();}
     private static Controller virtual;
     private static boolean constructing,retiring,detaching;
     private static int drained;
@@ -62,6 +63,8 @@ public final class ControllerBridge {
         if(virtual==null) return;
         var pad=mapper.map(state,System.nanoTime(),mode==2&&!retiring&&!detaching);
         if(reserveRightTrigger) pad.axes()[5]=-1;
+        if(pzvr.interaction.HandUse.reserves(0)) pad.buttons()[4]=false;
+        if(pzvr.interaction.HandUse.reserves(1)) pad.buttons()[5]=false;
         GamepadState target=states[SLOT];
         for(int i=0;i<6;i++) target.axesButtons.axes(i,pad.axes()[i]);
         for(int i=0;i<15;i++) target.axesButtons.buttons(i,(byte)(pad.buttons()[i]?1:0));

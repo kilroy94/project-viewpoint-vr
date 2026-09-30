@@ -53,6 +53,15 @@ public class TurnTest {
   ok(Math.abs(LookState.yaw()-before-Math.toRadians(15))<.0001,"direct XR input without gamepad mode");
   ControllerBridge.publish(vr(0,0,1));tick();ok(NativeAvatar.attackAim(),"XR aim");
   ControllerBridge.clear();tick();ok(!NativeAvatar.attackAim(),"stale/lost XR input disarms");
+  pzvr.interaction.HandUse.installed=true;pzvr.interaction.HandUse.configure(2,2);
+  TurnRuntime.configure(1,30,90,1,2);ControllerBridge.publish(vr(0,0,0));tick();
+  var grip=new VrControllerState.Hand("touch",true,0,0,0,1,false,false,false,false);
+  ControllerBridge.publish(new VrControllerState(1,System.nanoTime(),true,grip,grip));tick();
+  ok(!NativeAvatar.attackAim(),"interaction grip cannot also ready via raw VR input");
+  pzvr.interaction.HandUse.configure(0,2);
+  tick();ok(!NativeAvatar.attackAim(),"restoring grip aim while held requires release");
+  ControllerBridge.publish(vr(0,0,0));tick();ControllerBridge.publish(new VrControllerState(1,System.nanoTime(),true,grip,grip));tick();
+  ok(NativeAvatar.attackAim(),"restored grip aim rearms after release");
   TurnRuntime.configure(0,30,90,0,0);pad.x=1;tick();ok(pad.getAimingAxisXRaw()==1&&!NativeAvatar.attackAim(),"Off restores native");
   TurnRuntime.configure(1,30,90,2,0);pad.x=0;pad.lt=-1;tick();
   float saved=LookState.yaw();pad.connected=false;pad.x=1;tick();ok(LookState.yaw()==saved,"disconnected physical pad ignored");

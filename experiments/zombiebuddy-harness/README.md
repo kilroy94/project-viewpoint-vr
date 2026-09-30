@@ -1,10 +1,24 @@
 # PZ3D VR mod guide
 
+The preserved **`pz3d-vr-baseline`** source/package is **0.11.0**, including hand-proximity use. The [baseline implementation map](../../docs/PZ3D-BASELINE.md) documents the current architecture and renderer coupling. The numbered GitHub release remains 0.10.1; the preservation task publishes source and an annotated baseline tag, not a new numbered release. Headset validation gaps are retained below.
+
 Current release: **[v0.10.1 prerelease](https://github.com/kilroy94/pz3d-vr/releases/tag/v0.10.1)**, adding stick turning and a separate ready/aim binding for Zomboid 42.21.0 and PZ3D 0.3.0. The published v0.9.0 package is for the older binaries. The prototype provides live OpenXR stereo and head tracking, the vanilla UI in VR, tracked first-person arms and held items, optional Touch-to-gamepad input, and experimental motion melee. Continuous desktop stereo and one-shot eye-image capture remain available without a headset or VR runtime.
 
 Supported binaries are exactly Project Zomboid **42.21.0**, PZ3D **0.3.0**, and ZombieBuddy **2.3.2**, checked by SHA-256 rather than version strings alone. Use first-person, on-foot, single-player testing. This remains an experimental VR conversion. Live desktop stereo, simulated-headset output and UI have user confirmation, and a physical-headset tester confirmed earlier arm tracking. Later arm refinements, gamepad input and melee still need headset/in-game validation; see [VALIDATION.md](VALIDATION.md).
 
 Start with [installation](#install-for-your-test) and the [project overview](../../README.md) for default shortcuts and feature summaries. All prototype shortcuts are remappable in **Options > Mods > PZ3D VR**. Close the game before replacing the local `PZ3DVRTest` folder; restart and approve the changed JAR if ZombieBuddy prompts. Sections below describe current behavior and identify the version that introduced each feature.
+
+## Hand proximity interaction (0.11.0 workspace build)
+
+This package adds a prototype for using nearby objects with a tracked hand. In **Options > Mods > PZ3D VR**, set **Hand proximity interaction** to **Diagnostics only** or **Live**, then choose **Interaction grip**: right (default), left, or either hand. The feature defaults to Off. Start XR, release the grip, reach within **25 cm** of the object's surface, and squeeze once. Release before another interaction. Diagnostics prints the selected object and action under `[PZ3D VR Use]` in `Zomboid/console.txt` without dispatching the action.
+
+Target selection uses the tracked controller's palm-centered grip position and PZ3D's world geometry, native picking, visibility, and player reach checks. The existing PZ3D short-press handler then uses its native door/window, curtain, light-switch, world-item pickup, container UI, or contextual-action route as applicable. Looking at a different object does not change the hand-selected target. The code does not simulate the E key, teleport the character, or implement new object behavior. Geometry selection is conservative: an occluded surface or a point that does not pass native picking will not interact.
+
+The selected grip is reserved while the feature is enabled, **including in menus and diagnostics**. Its virtual gamepad bumper is held released, and that grip cannot also serve as the VR ready/aim binding. Choose a separate ready/aim input, such as left trigger, or turn hand interaction Off to restore the grip. Physical gamepad bindings are unchanged. Return the controls to neutral after changing settings.
+
+This first version handles short-press targets represented in PZ3D's world/item geometry. It does not add hold-to-climb, vehicle entry, corpse/animal targeting, remote grabbing, or a VR menu pointer. Native restrictions and contextual behavior still apply; it is not a promise that every vanilla E scenario is covered. Synthetic arms, tracking/focus loss, menus, pause, recentering, active timed actions/combat, traversal and multiplayer block hand use. A grip held during an interruption must be released again. If an interaction error disables the feature, its grip stays reserved until you set the feature Off.
+
+Install the workspace `dist/PZ3DVRTest-0.11.0.zip` with the game closed. First test a door opening and closing while looking elsewhere, then a window, light switch, and container. Test each chosen hand, hold-to-prevent-repeat, SteamVR dashboard return, menus and synthetic preview. Automated tests verify input/scoping and copied-binary contracts; real headset/gameplay confirmation is still required.
 
 ## ZombieBuddy temporary-fix compatibility (0.10.1)
 
@@ -18,7 +32,7 @@ To reproduce the additional copied-loader compatibility test, place your tempora
 
 ## Stick turning and separate ready/aim (0.10.0)
 
-**Options > Mods > PZ3D VR > Stick turning** offers Off (default), Snap and Smooth. Snap angle: 15/30/45/60/90 degrees, default 30; smooth speed: 30?240 degrees/second, default 90. Snap once per sideways deflection, then center to rearm. Smooth speed scales with horizontal deflection; vertical input never pitches the camera.
+**Options > Mods > PZ3D VR > Stick turning** offers Off (default), Snap and Smooth. Snap angle: 15/30/45/60/90 degrees, default 30; smooth speed: 30-240 degrees/second, default 90. Snap once per sideways deflection, then center to rearm. Smooth speed scales with horizontal deflection; vertical input never pitches the camera.
 
 **Turning input** selects Automatic, VR controllers or Assigned gamepad. Automatic prefers the player's assigned physical gamepad, otherwise VR controller input. Physical pads use native configured aiming axes/inversions; VR controllers use OpenXR sticks directly without requiring the virtual gamepad. Assign physical pads through native controller settings. Current VR stick bindings are Touch-profile bindings; other profiles are not newly added by this feature.
 
@@ -151,7 +165,7 @@ Held items remain visible and follow their tracked hand. The renderer preserves 
 
 This is still visual tracking: controller buttons, attacking, hit detection, gun aim/projectiles, flashlight illumination direction and world interactions use the existing game behavior. Two-handed items follow their native owning hand; the other hand is not constrained to a second grip. PZ3D's existing capture/visibility rules still apply, including items it omits while scoped. Fingers retain native animation, and shadows prepared before the stereo pair retain native poses.
 
-Install `PZ3DVRTest-0.10.1.zip` with the game closed and approve the updated JAR if prompted. Start the runtime, enter first-person PZ3D on foot in single player, hold controllers comfortably forward, and enable XR with **Ctrl+Shift+Scroll Lock**. Initial valid tracking aligns controller orientation to the native hand orientation; subsequent rotation turns the wrist. **Ctrl+Shift+Alt+Scroll Lock** recalibrates both camera and hand alignment. Controller position needs no button press.
+Install `PZ3DVRTest-0.11.0.zip` with the game closed and approve the updated JAR if prompted. Start the runtime, enter first-person PZ3D on foot in single player, hold controllers comfortably forward, and enable XR with **Ctrl+Shift+Scroll Lock**. Initial valid tracking aligns controller orientation to the native hand orientation; subsequent rotation turns the wrist. **Ctrl+Shift+Alt+Scroll Lock** recalibrates both camera and hand alignment. Controller position needs no button press.
 
 Test empty hands first: rotate each controller in place and check that the palm stays at the grip position. Then equip a one-handed item, a secondary-hand item, and a two-handed weapon. Check item alignment while translating and rotating each hand, after swapping equipment, after recentering, and after losing/reacquiring one controller. Native shadows and simulated attacks are not evidence of tracked interaction.
 
@@ -175,7 +189,7 @@ Install with the game closed and approve the new JAR if prompted. Enable XR with
 
 ## Timing diagnostics (0.3.2)
 
-Replace the local test-mod folder with `PZ3DVRTest-0.10.1.zip` while the game is closed, then approve the new JAR if prompted. Controls are unchanged. Enable XR with **Ctrl+Shift+Scroll Lock**, remain in the same scene for about 20 seconds, then walk/turn for about 30 seconds. Toggle XR off to flush the final partial report. Reports appear automatically in the game's `console.txt` with `[PZ3D XR Timing]`; there is no extra hotkey.
+Replace the local test-mod folder with `PZ3DVRTest-0.11.0.zip` while the game is closed, then approve the new JAR if prompted. Controls are unchanged. Enable XR with **Ctrl+Shift+Scroll Lock**, remain in the same scene for about 20 seconds, then walk/turn for about 30 seconds. Toggle XR off to flush the final partial report. Reports appear automatically in the game's `console.txt` with `[PZ3D XR Timing]`; there is no extra hotkey.
 
 Each five-second window reports successful stereo submissions per elapsed second (`stereoHz`), XR calls, submitted/skipped/failed counts, the runtime's latest predicted display period, and calls whose total wall time exceeds that period (`overBudget`). This is not a compositor dropped-frame count. `stereoHz` measures application submission, not presentation to the display.
 
@@ -239,7 +253,7 @@ The log reports `[PZ3D VR Mirror] ON`, the first completed pair, progress every 
 
 ## Install for your test
 
-1. Close Project Zomboid. Extract `PZ3DVRTest-0.10.1.zip` into your local Zomboid mods directory, normally `%USERPROFILE%\Zomboid\mods`. The resulting descriptor should be `mods\PZ3DVRTest\42.20.4\mod.info`, with a sibling `PZ3DVRTest\common` directory. Do not put it in the Steam game directory or replace either existing mod JAR.
+1. Close Project Zomboid. Extract `PZ3DVRTest-0.11.0.zip` into your local Zomboid mods directory, normally `%USERPROFILE%\Zomboid\mods`. The resulting descriptor should be `mods\PZ3DVRTest\42.20.4\mod.info`, with a sibling `PZ3DVRTest\common` directory. Do not put it in the Steam game directory or replace either existing mod JAR.
 2. Enable **ZombieBuddy**, **PZ3D**, and **PZ3D Stereo Capture Test [Java]**, in that order, for a new disposable single-player test save. Keep other mods disabled for this first test. ZombieBuddy and PZ3D remain the existing installations.
 3. The harness JAR is unsigned local development code. If ZombieBuddy presents its Java-mod approval dialog, review and approve this particular `PZ3DVRTest.jar`. The adjacent package `SHA256.txt` identifies the built JAR. No preload permission or global policy change is required. If your loader policy blocks unsigned code outright, the harness will remain unavailable; the package does not bypass that policy.
 4. Launch the save yourself. Enter PZ3D with **Insert**, use first person, and remain on foot. Look at a nearby object with more distant scenery behind it.
@@ -271,7 +285,7 @@ In this source workspace:
 .\experiments\zombiebuddy-harness\Test.ps1
 ```
 
-The builder produces `dist\PZ3DVRTest-0.10.1.zip`, an unpacked `dist\PZ3DVRTest` folder, and `dist\SHA256.txt`. It uses the portable JDK and copied reference JARs already present. It never installs the mod or launches the game. `Test-XR.ps1 -Mode xr -NullRuntime` exercises the packaged XR backend in isolation after `Test.ps1`; `-Mode missing` checks unavailable-runtime fallback. Test fixtures and transformed proprietary reference classes are excluded from the mod JAR.
+The builder produces `dist\PZ3DVRTest-0.11.0.zip`, an unpacked `dist\PZ3DVRTest` folder, and `dist\SHA256.txt`. It uses the portable JDK and copied reference JARs already present. It never installs the mod or launches the game. `Test-XR.ps1 -Mode xr -NullRuntime` exercises the packaged XR backend in isolation after `Test.ps1`; `-Mode missing` checks unavailable-runtime fallback. Test fixtures and transformed proprietary reference classes are excluded from the mod JAR.
 
 The tests exercise real JVM retransformation with an original synthetic renderer, including all-target activation, mismatch rollback, inactive rendering, one-shot requests, unsupported views, recursive entry protection, success/failure reports, lease cleanup, and capture failure isolation. A separate process defines and retransforms eleven actual copied render, melee and controller target classes **without initializing them, constructing a Frame, or invoking any game/mod entry point**. A standalone hidden OpenGL context tests the real capture helper: separate eye copies, image orientation, PNG writing, and texture/framebuffer/pixel-buffer state restoration.
 

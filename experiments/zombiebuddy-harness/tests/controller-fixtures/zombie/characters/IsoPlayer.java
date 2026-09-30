@@ -1,1 +1,1 @@
-package zombie.characters;public class IsoPlayer {public static final IsoPlayer[] players=new IsoPlayer[4];private int bind=-1;public int getJoypadBind(){return bind;}public void setJoypadBind(int id){bind=id;}}
+package zombie.characters;public class IsoPlayer extends IsoGameCharacter {public static final IsoPlayer[] players=new IsoPlayer[4];private int bind=-1;public int getJoypadBind(){return bind;}public void setJoypadBind(int id){bind=id;}}

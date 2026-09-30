@@ -1,5 +1,7 @@
 # PZ3D VR feasibility report
 
+**Historical research snapshot, not current implementation status.** The authorized implementation has since progressed to a 0.11.0 PZ3D VR baseline. Read [the current implementation map](../docs/PZ3D-BASELINE.md) and [validation record](../experiments/zombiebuddy-harness/VALIDATION.md) for implemented features and remaining evidence gaps. Statements below about missing integration and required next-phase approval describe the original research phase only.
+
 **Conclusion: an OpenXR proof-of-concept is technically plausible with the installed PZ3D 0.2.2 architecture. It is not currently a safe two-eye renderer, and acceptable VR performance remains unproven.** The most useful next step is a narrowly scoped, version-pinned compatibility add-on with a deliberate once-per-frame preparation / per-eye drawing boundary.
 
 This report is based on copied local binaries and decompilation, supplemented by official OpenXR/LWJGL documentation. Project Zomboid was not launched, and the working installation/mods were not modified. No VR prototype was implemented.

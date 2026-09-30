@@ -1,6 +1,6 @@
 # PZ3D renderer boundary — milestone 3
 
-This is an **offline-tested renderer adapter**, not an installable VR mod. It rewrites copies of four classes from the pinned PZ3D 0.3.0 binary and supplies an opt-in Java bridge for rendering a synthetic eye pair. It does not launch the game, install a transformer, change a signed JAR, or connect game rendering to OpenXR yet.
+This directory supplies the **current stereo instrumentation used by the 0.11.0 harness**, as well as an independently runnable offline adapter test. It transforms four classes from the pinned PZ3D 0.3.0 binary. The complete installable mod, runtime transformer installation and OpenXR connection live in the [harness](../zombiebuddy-harness/README.md); this directory's standalone commands do not launch or install anything. See the [current baseline map](../../docs/PZ3D-BASELINE.md) for the integrated lifecycle and exact coupling.
 
 Subsequent milestone: a [ZombieBuddy capture harness](../zombiebuddy-harness/README.md) now packages the bridge and shared transformer for the user's first in-game test. The offline adapter below remains available independently. The harness additionally intercepts capture-only errors and performs retained-style fallback; that behavior was not part of the original adapter-only milestone.
 
@@ -55,7 +55,9 @@ Three transformed installed classes passed independent JDK classfile verificatio
 
 These checks establish bytecode structure and adapter control flow. They do not establish that the live PZ3D renderer is stereo-correct. Real GL state, native model/texture lifetimes, unseen side effects, concurrent configuration updates, shared-shadow coverage of both eyes, and shader behavior still need in-game evidence. The palette fingerprint is a diagnostic hash, not an immutable copy or synchronization primitive. The JOML bundled in the game emits an existing Unsafe deprecation warning under Java 25 during tests.
 
-## Next integration work
+## Historical integration plan (completed by the harness)
+
+The following paragraphs preserve the original milestone plan, not outstanding implementation tasks. Runtime loading, XR, UI and tracked arms are implemented in the harness; current limitations are listed in the baseline map.
 
 The missing part is the loader-backed test harness: install an all-or-nothing, version-checked transformer through the supported ZombieBuddy development workflow, invoke the bridge from the existing consumer path, allocate and retire two test targets on the render thread, mirror one eye, and save an opt-in capture with scene/generation and lease evidence. Transformer ordering and original input class hashes must be checked before activation; matching files on disk alone does not prove compatible loaded bytecode.
 
