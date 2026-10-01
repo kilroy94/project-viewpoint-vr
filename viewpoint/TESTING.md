@@ -6,8 +6,10 @@ This experimental build implements continuous desktop stereo, OpenXR headset out
 
 1. Close Project Zomboid. Extract `ProjectViewpointVR-0.5.0.zip` into `%USERPROFILE%\Zomboid\mods`, replacing the previous ProjectViewpointVR files. The descriptor is `ProjectViewpointVR\42\mod.info`.
 2. Use Zomboid **42.21.0**, Viewpoint **0.1.3**, and ZombieBuddy **2.3.2** (original pinned JAR or audited B42.21 temporary fix). Exact binary checks remain mandatory. Approve the updated Java JAR if ZombieBuddy prompts.
-3. Enable those mods in a disposable single-player save. Disable PZ3D and the old PZ3D VR mod for this save. Enter Viewpoint first person, on foot. Viewpoint's inspected default toggle is **O**; use your established control if different.
+3. Enable those mods in a disposable single-player save. For an existing save, use **Load > select the save > Choose Mods** and explicitly enable **Project Viewpoint VR - Desktop + OpenXR [Java]** there; enabling it only at the main menu does not enable it for that save. Disable PZ3D and the old PZ3D VR mod for this save. Enter Viewpoint first person, on foot. Viewpoint's inspected default toggle is **O**; use your established control if different.
 4. The **Project Viewpoint VR** buttons appear near the upper left. Use Viewpoint's **middle mouse button** to free/capture the cursor when you need to click them. Settings are session-only; startup mode is always Off.
+
+If the buttons are missing, first check the save's own mod list. In the observed case, the Java startup message appeared at the main menu but the mod was absent from the save, so the Lua controls did not load. After changing the save's mod selection, restart the game. Pause/Break alone only turns a mode Off and has no visible effect when already Off.
 
 ## Desktop test first
 

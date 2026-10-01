@@ -1,5 +1,9 @@
 # Viewpoint baseline validation
 
+## Save-specific controls issue resolved
+
+The user reported missing 0.5.0 buttons and apparently inactive Pause/Break controls. Read-only inspection confirmed that 0.5.0 initialized at the main menu, but the save loaded a separate five-mod list without `ProjectViewpointVR`. Its Lua controls were therefore absent in that save. The user enabled the mod for the save and confirmed the issue was fixed. No code change or save-file edit was needed. This confirms resolution of the controls-availability issue; it is not additional confirmation of sustained stereo or headset behavior.
+
 ## User capture evidence and runtime milestone 0.5.0
 
 The user's 0.4.1 test on 2026-09-30 at 22:55:47 and 22:55:49 America/New_York produced complete `capture-2026-10-01T02-55-47.025698100Z-6ccc9bb7` and `capture-2026-10-01T02-55-49.405564200Z-ec3c8b52` folders. Both metadata files report 1280x720 per eye and the pinned game/Viewpoint hashes. Both side-by-side images were visually inspected: upright bedroom/doorway geometry in both eyes, visible stereo displacement, no black eye. Console entries at native frames 536 and 831 report saved pairs; subsequent native rendering/performance logs continue without capture errors. This establishes the one-shot in-game path for those scenes, not comprehensive visibility, sustained performance or headset correctness. Captures and personal console logs are not committed.
