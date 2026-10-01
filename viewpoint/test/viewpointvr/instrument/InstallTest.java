@@ -27,6 +27,14 @@ public final class InstallTest {
                 try(var in=jar.getInputStream(jar.getJarEntry(name+".class"))){expected.put(name,CanonicalClass.encode(in.readAllBytes()));}
             }
         }
+        var uiTransform=new UiTransform(mod);
+        try(var jar=new JarFile(mod.toFile())){
+            for(String name:UiTransform.TARGETS)try(var in=jar.getInputStream(jar.getJarEntry(name+".class"))){
+                byte[] source=in.readAllBytes(),patched=uiTransform.transform(name,source);
+                rejects(()->uiTransform.transform(name,patched));
+                rejects(()->uiTransform.transform(name+"Unknown",source));
+            }
+        }
         var locked=(Instrumentation)Proxy.newProxyInstance(loader,new Class<?>[]{Instrumentation.class},(p,m,a)->{
             if(m.getName().equals("isModifiableClass"))return false;return m.invoke(instrumentation,a);
         });

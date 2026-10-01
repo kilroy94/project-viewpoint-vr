@@ -35,6 +35,9 @@ public final class Main {
                     return target.published()?"Saved stereo pair: "+target.result():"Skipped: use Viewpoint first person, on foot, single player";
                 }
             });
+            UiBridge.queue(action->zombie.core.SpriteRenderer.instance.drawGeneric(new zombie.core.textures.TextureDraw.GenericDrawer(){
+                @Override public void render(){action.run();}
+            }));
             runtime=new RuntimeDriver(new NativePipeline(access),captures,installed::ready,Main::stopKey,System::nanoTime);
             FrameBoundary.dispatcher(runtime);
             status=captures.status();
@@ -56,6 +59,14 @@ public final class Main {
             && !org.lwjglx.input.Keyboard.isKeyDown(29)&&!org.lwjglx.input.Keyboard.isKeyDown(157)
             && !org.lwjglx.input.Keyboard.isKeyDown(56)&&!org.lwjglx.input.Keyboard.isKeyDown(184);
     }
+    public static void uiPointer(double x,double y,double width,double height){
+        long window=org.lwjglx.opengl.Display.getWindow();
+        boolean visible=window!=0&&org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(window,org.lwjgl.glfw.GLFW.GLFW_FOCUSED)!=0
+            &&org.lwjgl.glfw.GLFW.glfwGetInputMode(window,org.lwjgl.glfw.GLFW.GLFW_CURSOR)==org.lwjgl.glfw.GLFW.GLFW_CURSOR_NORMAL;
+        if(width>0&&height>0)UiBridge.cursor((float)(x/width),(float)(y/height),visible);
+    }
+    public static void uiBegin(){UiBridge.marker(0,true);}
+    public static void uiEnd(){UiBridge.marker(0,false);}
     public static String mode(String name){return runtime==null?status:runtime.mode(name);}
     public static String recenter(){return runtime==null?status:runtime.recenter();}
     public static String scale(double value){return runtime==null?status:runtime.scale(value);}

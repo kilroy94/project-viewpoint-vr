@@ -1,7 +1,7 @@
 name=Project Viewpoint VR - Desktop + OpenXR [Java]
 id=ProjectViewpointVR
 author=Project Viewpoint VR
-modversion=0.5.0
+modversion=0.6.0
 versionMin=42.21.0
 versionMax=42.21.0
 require=\ZombieBuddy,Viewpoint
@@ -9,4 +9,4 @@ javaJarFile=media/java/client/ProjectViewpointVR.jar
 javaPkgName=viewpointvr.diagnostic
 ZBVersionMin=2.3.2
 ZBVersionMax=2.3.2
-description=Experimental desktop stereo and OpenXR head tracking for Viewpoint 0.1.3. Single player, first person, on foot. On-screen Off/Desktop/XR fixed/XR tracked controls; Pause/Break turns Off, Shift+Pause/Break saves a pair while Off. Five-second recenter and adjustable scale. World only: no VR UI/controllers/hands. See the included README for testing and limitations.
+description=Experimental desktop stereo and OpenXR head tracking for Viewpoint 0.1.3. Single player, first person, on foot. On-screen Off/Desktop/XR fixed/XR tracked controls; Pause/Break turns Off, Shift+Pause/Break saves a pair while Off. Five-second recenter and adjustable scale. Transparent headset panel includes game UI and Viewpoint overlays; desktop mouse/keyboard interaction. No VR controllers or tracked hands. See the included README for testing and limitations.

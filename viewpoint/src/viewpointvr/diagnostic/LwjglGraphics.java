@@ -112,6 +112,7 @@ public final class LwjglGraphics implements CaptureOutput.Graphics {
             check("stereo mirror");
         } finally {state.restore().restore();}
     }
+    public int texture(int target) {owned(target);return textures.get(target);}
     private void owned(int target) { if(!textures.containsKey(target)) throw new IllegalArgumentException("Unowned eye target"); }
     private static void check(String stage) { int error=glGetError(); if(error!=GL_NO_ERROR) throw new IllegalStateException(stage+": GL error "+error); }
 }

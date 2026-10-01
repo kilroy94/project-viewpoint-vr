@@ -6,7 +6,7 @@
 
 The installed Viewpoint 0.1.3 and Zomboid 42.21.0 JARs were inspected with JDK bytecode tools and Vineflower. Exact SHA-256 pins are in [pins.json](../viewpoint/pins.json). Decompiled implementations are evidence only, not source to copy into this project. Generated disassembly and proprietary copies are local ignored build inputs. No game/mod entry point was run. Findings below describe the pinned binary, not stable public APIs.
 
-The 0.4.1 one-shot diagnostic produced two complete in-game stereo captures during the user's 2026-09-30 test. Version 0.5.0 implements continuous desktop stereo, OpenXR submission, independent head tracking and recentering. All new runtime modes still require user live validation. See the current [test guide](../viewpoint/TESTING.md).
+The 0.4.1 one-shot diagnostic produced two complete in-game stereo captures during the user's 2026-09-30 test. Version 0.5.0 implements continuous desktop stereo, OpenXR submission, independent head tracking and recentering. The user subsequently confirmed continuous desktop and null-headset tests without issues; physical-headset testing is deferred. Version 0.6.0 implements UI for the pinned 0.1.3 binary, with its live UI test pending. See the current [test guide](../viewpoint/TESTING.md).
 
 ## The boundary that must be implemented
 
@@ -36,10 +36,10 @@ The camera implementation starts from Viewpoint's scene-space eye anchor. World 
 
 Reuse the OpenXR WGL session lifecycle, frame timing, swapchain copy and quad-layer concepts from `experiments/zombiebuddy-harness/src/pzvr/xr`; extract them only when the new adapter needs them. The existing session acquires images at copy time, so owned output FBOs fit its current contract. Separate pose types and controller/gameplay coupling during that extraction. Reuse GL capture/mirror utilities selectively after removing `PairHooks.Sink` dependencies.
 
-Vanilla UI can use the completed `UIManager.uiFbo` texture; Viewpoint settings, loot/performance overlays and ImGui render later outside it and require separate capture work. Do not claim all UI is captured with the vanilla texture alone.
+Version 0.6.0 captures vanilla UI between its Lua draw events, captures Viewpoint loot/performance passes separately, and redirects the ImGui draw-data submission. The completed layers form one transparent OpenXR quad. See [UI.md](../viewpoint/UI.md) for boundaries, lifetime and limitations.
 
 Arm IK/calibration math may carry over later. Viewpoint uses packed 12-float bone palettes with distinct visible/shadow/previous records, so the old 16-float palette adapter cannot. Controller mapping has reusable parts, but movement/look, melee dispatch and hand interaction need Viewpoint-specific integration. Third person, freecam, seated vehicle VR and multiplayer are outside the first runtime milestone.
 
 ## Acceptance sequence
 
-Offline contract/camera tests, native pair lifecycle, real GL capture and loader activation are complete. The first in-game capture milestone is confirmed. Continuous desktop -> fixed XR -> tracked XR/recenter are now implemented in one package at the user's request, with separate controls for live isolation. Validate those modes before progressing to headset UI or hand/gameplay integration.
+Offline contract/camera tests, native pair lifecycle, real GL capture and loader activation are complete. The first in-game capture milestone is confirmed. Continuous desktop -> fixed XR -> tracked XR/recenter are now implemented in one package at the user's request, with separate controls for live isolation. The user confirmed desktop and null-headset tests and authorized proceeding with UI while physical-headset testing waits. The installed 0.1.5a-hotfix update changes the renderer and UI; the user explicitly chose to finish this UI milestone for 0.1.3 and handle compatibility separately.

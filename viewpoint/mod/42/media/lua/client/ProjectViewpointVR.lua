@@ -6,7 +6,6 @@ local panel = nil
 local previous = nil
 local function drawStatus()
     if not ProjectViewpointVR then return end
-    ProjectViewpointVR.tick()
     local text = ProjectViewpointVR.status()
     if text and text ~= previous then
         print("[Project Viewpoint VR] " .. text)
@@ -42,7 +41,14 @@ local function controls()
     apply:initialise();panel:addChild(apply)
 end
 Events.OnGameStart.Add(controls)
-Events.OnPostUIDraw.Add(drawStatus)
+Events.OnPreUIDraw.Add(function() if ProjectViewpointVR then ProjectViewpointVR.uiBegin() end end)
+Events.OnPostUIDraw.Add(function()
+    drawStatus()
+    if ProjectViewpointVR then
+        ProjectViewpointVR.uiPointer(getMouseX(),getMouseY(),getCore():getScreenWidth(),getCore():getScreenHeight())
+        ProjectViewpointVR.uiEnd();ProjectViewpointVR.tick()
+    end
+end)
 Events.OnMainMenuEnter.Add(function()
     if ProjectViewpointVR then ProjectViewpointVR.mode("OFF") end
     if panel then panel:removeFromUIManager();panel=nil end

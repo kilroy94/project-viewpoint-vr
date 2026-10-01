@@ -3,6 +3,7 @@ package viewpointvr.xr;
 import java.nio.*;
 import java.util.*;
 import org.lwjgl.PointerBuffer;
+import viewpointvr.diagnostic.UiCapture;
 import org.lwjgl.openxr.*;
 import org.lwjgl.system.MemoryStack;
 import static org.lwjgl.system.MemoryStack.stackPush;
@@ -24,7 +25,9 @@ public final class OpenXrSession implements AutoCloseable {
     private boolean running,ended,closed,focused;
     private long recenterTime=Long.MAX_VALUE;
     private boolean recenter;
-    private int fbo;
+    private int fbo,maxUiWidth,maxUiHeight;
+    private Eye ui;
+    private long uiSubmitted;
     private long submitted,frames,skipped;
     public int width() {return Math.max(eyes[0].width,eyes[1].width);}
     public int height() {return Math.max(eyes[0].height,eyes[1].height);}
@@ -60,6 +63,9 @@ public final class OpenXrSession implements AutoCloseable {
             check(xrGetSystem(instance,XrSystemGetInfo.calloc(s).type$Default().formFactor(XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY),id),"get HMD system"); system=id.get(0);
             XrSystemProperties systemProperties=XrSystemProperties.calloc(s).type$Default();
             check(xrGetSystemProperties(instance,system,systemProperties),"system properties");
+            if(systemProperties.graphicsProperties().maxLayerCount()<2)throw new IllegalStateException("Runtime requires two composition layers for UI");
+            maxUiWidth=systemProperties.graphicsProperties().maxSwapchainImageWidth();
+            maxUiHeight=systemProperties.graphicsProperties().maxSwapchainImageHeight();
             XrGraphicsRequirementsOpenGLKHR requirements=XrGraphicsRequirementsOpenGLKHR.calloc(s).type$Default();
             check(xrGetOpenGLGraphicsRequirementsKHR(instance,system,requirements),"graphics requirements");
             long version=XR_MAKE_VERSION(glGetInteger(GL_MAJOR_VERSION),glGetInteger(GL_MINOR_VERSION),0);
@@ -141,7 +147,8 @@ public final class OpenXrSession implements AutoCloseable {
             }
         }
     }
-    public boolean frame(Renderer renderer) throws Throwable {
+    public boolean frame(Renderer renderer) throws Throwable {return frame(renderer,null);}
+    public boolean frame(Renderer renderer,UiCapture.Image panel) throws Throwable {
         current(); if(closed) throw new IllegalStateException("Session closed");
 
         boolean rendered=false;
@@ -191,6 +198,12 @@ public final class OpenXrSession implements AutoCloseable {
                         rendered=true;
                     }
                 }
+                if(state.shouldRender()&&panel!=null){
+                    var layer=uiLayer(panel,s);
+                    long world=end.layers()==null?0:end.layers().get(0);
+                    end.layers(world==0?s.pointers(layer.address()):s.pointers(world,layer.address()));
+                    uiSubmitted++;if(uiSubmitted==1||uiSubmitted%600==0)log("UI panels submitted="+uiSubmitted);
+                }
             } catch(Throwable error){failure=error;throw error;} finally {
                 try{check(xrEndFrame(session,end),"end frame");}catch(Throwable cleanup){if(failure!=null)failure.addSuppressed(cleanup);else throw cleanup;}
             }
@@ -198,6 +211,23 @@ public final class OpenXrSession implements AutoCloseable {
             else skipped++;
             return rendered;
         }
+    }
+    private XrCompositionLayerQuad uiLayer(UiCapture.Image panel,MemoryStack s){
+        float scale=Math.min(1f,Math.min((float)maxUiWidth/panel.width(),(float)maxUiHeight/panel.height()));
+        int w=Math.max(1,Math.round(panel.width()*scale)),h=Math.max(1,Math.round(panel.height()*scale));
+        if(ui==null||ui.width!=w||ui.height!=h){
+            destroy(ui);ui=new Eye();ui.width=w;ui.height=h;allocate(ui,s);
+            log("UI swapchain: "+w+"x"+h);
+        }
+        copy(ui,panel.framebuffer(),panel.width(),panel.height(),s,null);
+        var layer=XrCompositionLayerQuad.calloc(s).type$Default().space(head)
+            .layerFlags(XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT).eyeVisibility(XR_EYE_VISIBILITY_BOTH);
+        layer.pose().orientation().w(1);layer.pose().position$().set(0,0,-1.5f);
+        float aspect=(float)panel.width()/panel.height(),width=Math.min(2f,1.3f*aspect);
+        layer.size().set(width,width/aspect);
+        layer.subImage().swapchain(ui.handle).imageArrayIndex(0);
+        layer.subImage().imageRect().offset().set(0,0);layer.subImage().imageRect().extent().set(w,h);
+        return layer;
     }
     private static XrCamera.Pose pose(XrPosef pose) {
         var p=pose.position$(); var q=pose.orientation(); return new XrCamera.Pose(p.x(),p.y(),p.z(),q.x(),q.y(),q.z(),q.w());
@@ -220,7 +250,7 @@ public final class OpenXrSession implements AutoCloseable {
             if(glCheckFramebufferStatus(GL_DRAW_FRAMEBUFFER)!=GL_FRAMEBUFFER_COMPLETE) throw new IllegalStateException("XR FBO incomplete");
             glBindFramebuffer(GL_READ_FRAMEBUFFER,source);
             // Preserve display-encoded PZ color bytes; physical gamma still needs headset validation.
-            int[] crop=view.crop(width,height);
+            int[] crop=view==null?new int[]{0,0,width,height}:view.crop(width,height);
             glReadBuffer(GL_COLOR_ATTACHMENT0);
             glBlitFramebuffer(crop[0],crop[1],crop[2],crop[3],0,0,eye.width,eye.height,GL_COLOR_BUFFER_BIT,GL_LINEAR);
             int error=glGetError(); if(error!=GL_NO_ERROR) throw new IllegalStateException("XR copy GL error "+error);
@@ -242,6 +272,7 @@ public final class OpenXrSession implements AutoCloseable {
         if(session!=null && running) cleanup(xrRequestExitSession(session),"request exit");
         if(fbo!=0) { glDeleteFramebuffers(fbo); fbo=0; }
         for(Eye eye:eyes) destroy(eye);
+        destroy(ui);ui=null;
         if(head!=null) cleanup(xrDestroySpace(head),"destroy head space");
         if(local!=null) cleanup(xrDestroySpace(local),"destroy local space");
         if(session!=null) cleanup(xrDestroySession(session),"destroy session");

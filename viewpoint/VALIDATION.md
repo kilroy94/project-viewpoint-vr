@@ -1,5 +1,19 @@
 # Viewpoint baseline validation
 
+## UI milestone 0.6.0 and confirmed earlier tests
+
+The user confirmed tests 1 and 2 (continuous desktop stereo and null-headset XR) without issues, and explicitly deferred physical-headset testing because a playtester is no longer available. This is user-reported live validation of the earlier 0.5.0 modes, not physical tracking/comfort verification or evidence for the new UI implementation.
+
+Version 0.6.0 adds transparent capture of Zomboid UI, Viewpoint loot/performance overlays and ImGui settings, preserving native desktop input and adding a released-cursor marker. The combined result is submitted on the next XR frame as a head-relative quad; idle frames can submit UI without a world projection. Capture targets include depth/stencil storage for native scrolling-panel clipping. See [UI.md](UI.md) for exact boundaries and limitations.
+
+The complete build passed in `build/runs/4b961a4e5c264202badfec5c0adccb04/`: **59 UI GPU checks**, **12 UI bridge checks**, **13 copied-target installation/rollback checks**, and the existing 32 GPU output, 38 capture, 21 XR camera, 16 runtime, 256 camera, 485 lifecycle, 32 entry, 219 stage-fixture, 17 copied-entry and 4 Python checks. All ten target classes passed transformation/retransformation and initialization audits without running dependency code. Lua compiled with the bundled Kahlua compiler without executing the script. Failure messages from deliberately injected UI/capture failures and missing runtime result -51 are expected test outcomes.
+
+The ZIP was inspected against compiler output and source assets: 67 project classes, the pinned OpenXR bindings and Windows loader, no proprietary/test classes. The extracted production JAR passed a separate missing-runtime smoke test using its bundled loader. ZIP SHA-256: `bf510002186a8ae554b465bbd9a037ab6bfc99bf6cc55d7782e30e50b2761d22`. Changed source/docs and packaged project classes were checked for personal absolute paths. No game/mod entry point or SteamVR was launched; installed files and Zomboid data were not modified.
+
+**Compatibility intentionally unchanged:** Steam had updated the installed Viewpoint to **0.1.5a-hotfix**, SHA-256 `94fedda302ab6c17ba1b38495789e4c9781d52823fb8204214c85402e3cab41f`. Archive comparison found 326 changed/added entries, including renderer and UI integration classes. The new binary was correctly rejected. The user explicitly chose to finish UI for **0.1.3** and handle the update separately. Final tests used the preserved, hash-matched 0.1.3 copy; the 0.6.0 package will not load with the current Workshop update. No compatibility claim follows from inspecting the newer classes.
+
+**Pending:** first in-game/null-headset UI test, desktop appearance/input parity, UI gamma/readability and physical-headset comfort. Automated capture/composition and metadata tests establish implementation behavior in isolation, not successful live UI presentation.
+
 ## Save-specific controls issue resolved
 
 The user reported missing 0.5.0 buttons and apparently inactive Pause/Break controls. Read-only inspection confirmed that 0.5.0 initialized at the main menu, but the save loaded a separate five-mod list without `ProjectViewpointVR`. Its Lua controls were therefore absent in that save. The user enabled the mod for the save and confirmed the issue was fixed. No code change or save-file edit was needed. This confirms resolution of the controls-availability issue; it is not additional confirmation of sustained stereo or headset behavior.
