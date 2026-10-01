@@ -44,10 +44,8 @@ public final class Main {
     }
     private static boolean captureKey() {
         long window=org.lwjglx.opengl.Display.getWindow();
-        return window!=0 && org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(window,org.lwjgl.glfw.GLFW.GLFW_FOCUSED)==org.lwjgl.glfw.GLFW.GLFW_TRUE
-                && org.lwjglx.input.Keyboard.isKeyDown(68)
-                && (org.lwjglx.input.Keyboard.isKeyDown(29)||org.lwjglx.input.Keyboard.isKeyDown(157))
-                && (org.lwjglx.input.Keyboard.isKeyDown(42)||org.lwjglx.input.Keyboard.isKeyDown(54));
+        boolean focused=window!=0 && org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(window,org.lwjgl.glfw.GLFW.GLFW_FOCUSED)==org.lwjgl.glfw.GLFW.GLFW_TRUE;
+        return CaptureController.captureChord(focused,org.lwjglx.input.Keyboard::isKeyDown);
     }
     public static String requestCapture() { return captures==null?status:captures.request(); }
     public static String status() {

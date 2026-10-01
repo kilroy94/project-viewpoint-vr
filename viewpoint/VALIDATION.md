@@ -1,5 +1,13 @@
 # Viewpoint baseline validation
 
+## Capture shortcut correction 0.4.1
+
+2026-09-30. Replaces Ctrl+Shift+F10 with **Shift+Pause/Break**. F10 is the installed game's screenshot default and the user's saved B42 screenshot binding; Viewpoint also handles it for developer isolation without checking modifiers. Installed Authentic Z Lua assigns F10 to Hotbar 14 and Scroll Lock to Hotbar 16, so Scroll Lock was also rejected.
+
+No Pause/Break binding was found in the installed game Lua, installed Workshop/local mod Lua, saved keys/Mods options, or the audited Viewpoint Java input code. Inspection of GameKeyboard, IngameState, Core, GameWindow and UIManager bytecode found no direct Pause key-code use; the installed Keyboard/KeyCodes mapping confirms LWJGL2 Pause 197 maps to GLFW Pause 284. This is a scoped local audit, not a guarantee about all Java mods, unrelated desktop applications, hardware mappings or future configurations.
+
+The production chord predicate requires focus and either Shift key, and rejects either Ctrl, Alt or Windows key. Twelve new input checks cover the supported chord, missing Shift, lost focus, all six extra modifiers and rejection of the old F10 chord. Capture/controller checks now total 38. Build/package verification, copied-class initialization audits and the 22 standalone GPU checks passed again. No game/mod entry point or SteamVR was launched; the physical shortcut and first in-game pair still await the user's test. Package: `dist/ProjectViewpointVR-0.4.1.zip`.
+
 ## Desktop capture diagnostic 0.4.0: packaged for first in-game test
 
 2026-09-30, Windows x64 / JDK 25. Same pinned game, Viewpoint and audited ZombieBuddy temporary-fix binaries. The build produces `dist/ProjectViewpointVR-0.4.0.zip` with 37 production classes, the mod descriptor/Lua status overlay, manual test guide and JAR checksum. Archive contents/checksums are verified; no dependency classes, test fixtures, test agent or proprietary binaries are bundled.

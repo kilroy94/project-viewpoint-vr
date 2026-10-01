@@ -11,11 +11,19 @@ public final class CaptureController implements FrameBoundary.Driver {
     private final LongSupplier clock;
     private final Capture capture;
     private final AtomicLong deadline=new AtomicLong();
-    private volatile String status="Ready: Ctrl+Shift+F10 saves one stereo pair";
+    private volatile String status="Ready: Shift+Pause/Break saves one stereo pair";
     private volatile boolean failed;
     private boolean held;
     public CaptureController(BooleanSupplier ready,BooleanSupplier key,LongSupplier clock,Capture capture) {
         this.ready=ready; this.key=key; this.clock=clock; this.capture=capture;
+    }
+    /** LWJGL2 codes; these constants are inlined without initializing game input. */
+    static boolean captureChord(boolean focused, IntPredicate down) {
+        return focused && down.test(org.lwjglx.input.Keyboard.KEY_PAUSE)
+                && (down.test(org.lwjglx.input.Keyboard.KEY_LSHIFT) || down.test(org.lwjglx.input.Keyboard.KEY_RSHIFT))
+                && !down.test(org.lwjglx.input.Keyboard.KEY_LCONTROL) && !down.test(org.lwjglx.input.Keyboard.KEY_RCONTROL)
+                && !down.test(org.lwjglx.input.Keyboard.KEY_LMENU) && !down.test(org.lwjglx.input.Keyboard.KEY_RMENU)
+                && !down.test(org.lwjglx.input.Keyboard.KEY_LMETA) && !down.test(org.lwjglx.input.Keyboard.KEY_RMETA);
     }
     public String request() {
         if(failed || !ready.getAsBoolean()) return status="Capture disabled; see console.txt";

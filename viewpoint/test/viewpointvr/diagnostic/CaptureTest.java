@@ -24,6 +24,20 @@ public final class CaptureTest {
         public void mirror(int t,int w,int h,ViewpointBackend.SavedOutput destination) { event("mirror"); }
     }
     public static void main(String[] args) throws Throwable {
+        Set<Integer> keys=new HashSet<>();
+        check(!CaptureController.captureChord(true,keys::contains),"no keys");
+        keys.add(197);
+        check(!CaptureController.captureChord(true,keys::contains),"Pause alone rejected");
+        keys.add(42);
+        check(CaptureController.captureChord(true,keys::contains),"left Shift+Pause");
+        check(!CaptureController.captureChord(false,keys::contains),"unfocused rejected");
+        keys.remove(42);keys.add(54);
+        check(CaptureController.captureChord(true,keys::contains),"right Shift+Pause");
+        for(int extra:new int[]{29,157,56,184,219,220}) {
+            keys.add(extra);check(!CaptureController.captureChord(true,keys::contains),"extra modifier rejected: "+extra);keys.remove(extra);
+        }
+        keys.clear();keys.addAll(Set.of(68,29,42));
+        check(!CaptureController.captureChord(true,keys::contains),"old Ctrl+Shift+F10 rejected");
         Path root=Files.createTempDirectory(Path.of(args[0]),"capture-test-");
         Graphics good=new Graphics(); Path result;
         try(var capture=new CaptureOutput(good,root)) {

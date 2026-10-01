@@ -73,7 +73,7 @@ public final class CaptureOutput implements ViewpointBackend.Output,AutoCloseabl
         var painter=stereo.createGraphics();
         try { painter.drawImage(images[0],0,0,null); painter.drawImage(images[1],width,0,null); } finally { painter.dispose(); }
         write(stereo,pending.resolve("stereo.png"));
-        Files.writeString(pending.resolve("capture.txt"),"Project Viewpoint VR 0.4.0\nComplete synthetic stereo pair\nEye size: "+width+"x"+height
+        Files.writeString(pending.resolve("capture.txt"),"Project Viewpoint VR 0.4.1\nComplete synthetic stereo pair\nEye size: "+width+"x"+height
                 +"\nIPD: 0.064 scene units\nViewpoint SHA-256: "+BinaryPins.VIEWPOINT+"\nGame SHA-256: "+BinaryPins.GAME
                 +"\nWorld image only; no UI or headset output.\nDiagnostic effects: TAA/GI/volumetrics/clouds/pack post passes disabled.\n");
         Path destination=root.resolve(name);
