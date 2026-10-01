@@ -6,7 +6,7 @@
 
 The installed Viewpoint 0.1.3 and Zomboid 42.21.0 JARs were inspected with JDK bytecode tools and Vineflower. Exact SHA-256 pins are in [pins.json](../viewpoint/pins.json). Decompiled implementations are evidence only, not source to copy into this project. Generated disassembly and proprietary copies are local ignored build inputs. No game/mod entry point was run. Findings below describe the pinned binary, not stable public APIs.
 
-The first delivered implementation was an offline compatibility checker plus pure camera math. Development baseline 0.2.0 added a synchronous pair coordinator and dormant entry transform. Baseline 0.3.0 adds a [concrete native-stage backend](../viewpoint/NATIVE-STAGES.md), tested through transformed synthetic fixtures and actual copied-class verification/retransformation without initialization. It has no real GL output provider or live loader/installer yet. The next runtime target is synthetic desktop stereo in first-person, on-foot, single-player mode.
+The first delivered implementation was an offline compatibility checker plus pure camera math. Baseline 0.2.0 added the pair lifecycle/entry transform; 0.3.0 added the [native-stage backend](../viewpoint/NATIVE-STAGES.md). Diagnostic 0.4.0 adds real GL output, a verified ZombieBuddy activation path and an installable one-shot capture ZIP. Automated checks passed; the next required evidence is the user's manual first-person, on-foot, single-player capture. No in-game stereo or headset output is confirmed yet.
 
 ## The boundary that must be implemented
 
@@ -42,4 +42,4 @@ Arm IK/calibration math may carry over later. Viewpoint uses packed 12-float bon
 
 ## Acceptance sequence
 
-Offline contract and camera tests (complete) -> lifecycle/entry-transform verification (complete) -> concrete Viewpoint stage adapter and transform/failure tests (complete for the synthetic diagnostic scope) -> real output/capture provider and verified loader activation -> user-installed synthetic stereo capture -> user-confirmed eye consistency and visibility -> OpenXR/head pose/recenter -> UI -> hands and gameplay. Each step must preserve a clear distinction between automated evidence and user live validation.
+Offline contract/camera tests, lifecycle verification, the diagnostic native-stage adapter, real GL capture and verified loader activation are complete with automated evidence. Next: user-installed synthetic stereo capture -> user-confirmed eye consistency and visibility -> OpenXR/head pose/recenter -> UI -> hands and gameplay. Each step must preserve a clear distinction between automated evidence and user live validation.

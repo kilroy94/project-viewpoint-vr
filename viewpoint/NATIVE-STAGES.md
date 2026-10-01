@@ -2,7 +2,7 @@
 
 `ViewpointBackend` implements `StereoFrame.Backend` using the pinned renderer's own methods. `StageTransform` edits call sites in WorldRenderer, FarPass and TemporalPass, retaining the original class schema and method implementations. It uses method handles resolved with each native caller's access privileges. Inactive hooks invoke the original calls unchanged. Full-JAR pins and normalized executable comparisons reject unknown or already patched classes before transformation.
 
-The three classes have 29 checked stage anchors: 22 in WorldRenderer (including two finish/runPasses sites), six in FarPass and one in TemporalPass. Together with the previous SceneDrawer entry hook, four native target classes require all-or-nothing verification/activation by a future installer.
+The three classes have 29 checked stage anchors: 22 in WorldRenderer (including two finish/runPasses sites), six in FarPass and one in TemporalPass. Together with SceneDrawer, four native target classes require all-or-nothing verification/activation. The 0.4.0 diagnostic loader now implements that path; first in-game validation remains pending.
 
 ## Execution and ownership
 
@@ -32,8 +32,8 @@ While a scope is active, native off() treats TAA, indirect lighting, volumetrics
 
 The captured projection is symmetric and unchanged in angular extent. Asymmetric headset projections and independent head rotation remain unsupported until sky/depth reconstruction and producer visibility are adapted. Native shadow placement uses a centered hand camera, but actual visual consistency, visibility at edges, input targeting and effect compatibility still require in-game evidence.
 
-## Output and activation still required
+## Output and activation added in 0.4.0
 
-The backend depends on an `Output` provider that transactionally captures real caller GL state, binds equally sized owned eye targets, synchronously copies each image and publishes only a complete pair. It checks reported target extents and restores the provider's state on every exit. This milestone supplies a synthetic provider, not an OpenGL implementation; its tests cannot establish actual GL correctness.
+The backend depends on an `Output` provider that transactionally captures caller GL state, binds equally sized owned eye targets, synchronously copies each image and publishes only a complete pair. `CaptureOutput` and `LwjglGraphics` now implement it with RGBA8 FBOs, synchronous readback, a one-frame left-eye desktop presentation and complete-folder PNG publication. Output is capped at 1280 pixels on the longest side. Pixel-transfer state, framebuffer bindings, viewport, texture state, scissor, sRGB and compatibility attributes are restored. The original FBOs must be rebound before popping their saved buffer selectors; a real GPU regression test covers this ordering and distinct read/draw FBOs.
 
-Next: implement and test that provider with FBO/capture utilities from the inherited project, add a version-pinned ZombieBuddy loader that verifies hook visibility/ownership and activates all four transforms together with rollback, then package a manual single-player stereo-capture diagnostic. Before packaging, review remaining effect/picking and culling limitations against that narrow capture scope. No active mod entry point or installer exists in 0.3.0.
+The loader validates pins and ownership, verifies all four transforms, activates them in one retransformation call and rolls back failure. The default dispatcher polls a one-shot capture chord and otherwise delegates unchanged native rendering. No continuous mode or XR path is installed. The [manual test guide](TESTING.md) limits the first capture to stationary, on-foot, first-person single-player testing and explicitly calls out altered effects, first-eye picking and unvalidated visibility. Next required evidence is the user's first in-game capture; standalone GPU and copied-class tests do not establish live Viewpoint rendering success.

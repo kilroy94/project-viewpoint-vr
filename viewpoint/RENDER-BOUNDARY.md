@@ -1,6 +1,6 @@
 # Render boundary milestone (0.2.0)
 
-This document describes the preserved 0.2.0 lifecycle/entry contract. The subsequent [0.3.0 native-stage adapter](NATIVE-STAGES.md) now implements a concrete Viewpoint backend; real output/capture and live activation remain absent.
+This document describes the preserved 0.2.0 lifecycle/entry contract. The subsequent [native-stage adapter](NATIVE-STAGES.md) implements a concrete backend, and [0.4.0](TESTING.md) adds real output/capture and a ZombieBuddy entry point. In-game validation is still pending.
 
 ## Entry hook
 
@@ -10,7 +10,7 @@ The only edit replaces the single `SceneDrawer.render -> drawFrame` invocation w
 
 The hook delegates to the original body once when no driver is registered. Driver registration is scoped to its owning thread. A driver may choose the ordinary path or replace it with split rendering stages. The borrowed original callback is single-use and cannot escape the scope, cross threads or recursively consume a scene. A replacement failure propagates to the native handler; it never retries the original frame after partial rendering.
 
-There is no live installer. Before one is added it must validate game/loader pins, loaded classloader identity/modifiability, hook visibility, transformed-bytecode verification and rollback. The current copied-binary test performs ownership and verification checks in an isolated JVM; that is not a claim of compatibility with ZombieBuddy's live patch chain.
+The 0.4.0 loader validates game/loader pins, loaded classloader identity/modifiability, hook visibility and transformed-bytecode verification. It rolls back failed all-target activation and disarms capture on a later incompatible transform. The copied-binary tests exercise activation and rollback in an isolated JVM; that is not a claim of compatibility with ZombieBuddy's live patch chain.
 
 ## Pair lifecycle
 

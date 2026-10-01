@@ -4,7 +4,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.util.Objects;
 
-/** Inert by default. No installation, class loading, settings changes or global driver. */
+/** Inert until a verified loader supplies a dispatcher; scoped test drivers take precedence. */
 public final class FrameBoundary {
     @FunctionalInterface public interface NativeDraw { void draw() throws Throwable; }
     @FunctionalInterface public interface Driver {
@@ -13,6 +13,8 @@ public final class FrameBoundary {
     }
     private static final ThreadLocal<Registration> DRIVER = new ThreadLocal<>();
     private static final ThreadLocal<Boolean> DRAWING = new ThreadLocal<>();
+    private static volatile Driver dispatcher;
+    public static void dispatcher(Driver value) { dispatcher = value; }
 
     /** Intended for a future render-thread adapter; only synthetic tests register one today. */
     public static Registration register(Driver driver) {
@@ -50,8 +52,9 @@ public final class FrameBoundary {
         DRAWING.set(true);
         try {
             Registration registration = DRIVER.get();
-            if (registration == null) original.draw();
-            else registration.driver.render(drawer, original);
+            Driver driver = registration == null ? dispatcher : registration.driver;
+            if (driver == null) original.draw();
+            else driver.render(drawer, original);
         } finally {
             original.valid = false;
             DRAWING.remove();

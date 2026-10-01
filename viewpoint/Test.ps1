@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory)][string]$JavaHome,
     [Parameter(Mandatory)][string]$GameJar,
     [Parameter(Mandatory)][string]$ViewpointJar,
-    [Parameter(Mandatory)][string]$ZombieBuddyJar
+    [Parameter(Mandatory)][string]$ZombieBuddyJar,
+    [string]$LwjglLibDirectory
 )
 $ErrorActionPreference = 'Stop'
 & python "$PSScriptRoot/test_contract.py"
@@ -38,6 +39,8 @@ foreach ($test in @('viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest'
 }
 & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath viewpointvr.instrument.StageFixtureTest $stageFixtures
 if ($LASTEXITCODE -ne 0) { throw 'Native stage fixture failed' }
+& "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath viewpointvr.diagnostic.CaptureTest $run
+if ($LASTEXITCODE -ne 0) { throw 'Capture/controller fixture failed' }
 @'
 Premain-Class: viewpointvr.instrument.TestAgent
 Can-Retransform-Classes: true
@@ -52,12 +55,25 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Copied-binary retransformation failed' }
     & "$JavaHome/bin/java.exe" -Xverify:all -ea '-Xlog:class+init=info:file=stage-init.log' "-javaagent:$run/test-agent.jar" -cp "$testClasspath;$viewpointCopy" viewpointvr.instrument.StageBinaryTest $viewpointCopy
     if ($LASTEXITCODE -ne 0) { throw 'Native stage retransformation failed' }
+    & "$JavaHome/bin/java.exe" -Xverify:all -ea '-Xlog:class+init=info:file=install-init.log' "-javaagent:$run/test-agent.jar" -cp "$testClasspath;$viewpointCopy" viewpointvr.instrument.InstallTest $viewpointCopy $gameCopy $loaderCopy
+    if ($LASTEXITCODE -ne 0) { throw 'Loader activation/rollback failed' }
 } finally { Pop-Location }
 & python "$PSScriptRoot/verify_init_log.py" "$run/class-init.log"
 if ($LASTEXITCODE -ne 0) { throw 'Initialization boundary violated' }
 & python "$PSScriptRoot/verify_init_log.py" "$run/stage-init.log"
 if ($LASTEXITCODE -ne 0) { throw 'Native stage initialization boundary violated' }
+& python "$PSScriptRoot/verify_init_log.py" "$run/install-init.log"
+if ($LASTEXITCODE -ne 0) { throw 'Loader initialization boundary violated' }
+$gpuPassed = $false
+if ($LwjglLibDirectory) {
+    $glJars = @('lwjgl-3.4.1.jar','lwjgl-glfw-3.4.1.jar','lwjgl-opengl-3.4.1.jar','lwjgl-3.4.1-natives-windows.jar','lwjgl-glfw-3.4.1-natives-windows.jar','lwjgl-opengl-3.4.1-natives-windows.jar') | ForEach-Object { (Resolve-Path (Join-Path $LwjglLibDirectory $_)).Path }
+    $glClasspath = $glJars -join ';'
+    & "$JavaHome/bin/java.exe" --enable-native-access=ALL-UNNAMED -ea -cp "$tests;$classes;$glClasspath" viewpointvr.diagnostic.GpuOutputTest "$run/gpu"
+    if ($LASTEXITCODE -ne 0) { throw 'Standalone hidden OpenGL test failed' }
+    $gpuPassed = $true
+}
 & "$JavaHome/bin/jar.exe" --create --file "$run/viewpoint-vr-core.jar" -C $classes .
 if ($LASTEXITCODE -ne 0) { throw 'Core packaging failed' }
 Write-Host "Test evidence and non-installable core JAR: $run"
-Write-Host 'Offline Viewpoint baseline passed. No game/mod entry point or OpenGL context was run.'
+@{ run=$run; classes=$classes; gpuPassed=$gpuPassed } | ConvertTo-Json | Set-Content "$PSScriptRoot/build/latest-run.json" -Encoding UTF8
+Write-Host 'Viewpoint tests passed. No game/mod entry point or SteamVR was launched.'

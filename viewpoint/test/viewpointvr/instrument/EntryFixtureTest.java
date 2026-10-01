@@ -106,6 +106,16 @@ public final class EntryFixtureTest {
         }
         Object recovered = type.getConstructor().newInstance(); render(recovered);
         check(number(recovered,"nativeCalls") == 1, "Driver and drawing scope removed after failures");
+        int[] dispatched={0};
+        FrameBoundary.dispatcher((drawer, original)-> { dispatched[0]++; original.draw(); });
+        try {
+            Object ordinaryDispatch=type.getConstructor().newInstance();render(ordinaryDispatch);
+            check(dispatched[0]==1 && number(ordinaryDispatch,"nativeCalls")==1,"Installed dispatcher delegates ordinary native frame");
+            try(var scope=FrameBoundary.register((drawer, original)->original.draw())) {
+                render(type.getConstructor().newInstance());
+                check(dispatched[0]==1,"Scoped test driver takes precedence over installed dispatcher");
+            }
+        } finally { FrameBoundary.dispatcher(null); }
         System.out.println("Entry fixture: " + checks + " checks passed; synthetic classes only");
     }
 }

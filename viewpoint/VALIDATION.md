@@ -1,5 +1,18 @@
 # Viewpoint baseline validation
 
+## Desktop capture diagnostic 0.4.0: packaged for first in-game test
+
+2026-09-30, Windows x64 / JDK 25. Same pinned game, Viewpoint and audited ZombieBuddy temporary-fix binaries. The build produces `dist/ProjectViewpointVR-0.4.0.zip` with 37 production classes, the mod descriptor/Lua status overlay, manual test guide and JAR checksum. Archive contents/checksums are verified; no dependency classes, test fixtures, test agent or proprietary binaries are bundled.
+
+- **22 standalone GPU checks** passed on an NVIDIA GeForce RTX 4090 using an invisible GLFW/OpenGL compatibility context. This is a small project test program, not Project Zomboid or SteamVR. It verifies eye colors, PNG vertical orientation and dimensions, owned-FBO deletion, viewport origin, scissor/sRGB, active texture/binding, pixel pack/unpack state, color mask, distinct non-default read/draw framebuffers and their buffer selectors. The GPU test caught and fixed FBO-before-attribute restoration ordering and explicit sRGB restoration.
+- **26 capture/controller checks** passed: complete-pair publication, side-by-side eye ordering, partial allocation/readback/presentation failures, cleanup, request coalescing, key release/rearming, expiry, unready-install rejection and failure disarming. The intentionally injected render failure prints an expected stack trace.
+- **9 loader activation/rollback checks** passed on actual copied, uninitialized classes: exact binary pins, unmodifiable-target rejection, all-target activation, compatible retransformation, removal, partial activation failure/rollback, reinstallation, later incompatible-code disarming and restoration of all four classes.
+- Previous camera (256), pair lifecycle (485), entry fixture (now 32), native-stage fixture (219), copied-entry (17), copied-stage metadata/retransformation, Python cases (4), and original/stage anchors (21/29) passed. All three copied-class JVM logs passed the no-Viewpoint/Zomboid/ZombieBuddy-initialization audit. The existing JOML Unsafe deprecation warning remains.
+
+**No game or SteamVR process was launched; no mod entry point was executed by the tests.** All test images/logs and native extraction stayed in local workspace/temp locations. Game installations, Workshop content, Zomboid user data and runtime settings were not changed. Installation and the first live capture are for the user, following `TESTING.md`.
+
+This package is ready for manual validation, not a confirmed Viewpoint VR implementation. Actual scene visibility, first-eye picking, shader compatibility, timing and stereo images remain unvalidated inside the game. The first diagnostic deliberately uses symmetric synthetic eyes and limited effects; no OpenXR, headset, controller or VR-UI functionality is enabled.
+
 ## Development baseline 0.3.0: concrete native-stage adapter
 
 2026-09-30, Windows x64 / JDK 25, same pinned game/Viewpoint inputs and audited ZombieBuddy temporary fix.
