@@ -6,7 +6,7 @@ import java.util.*;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-/** Synthetic first-person stage adapter. Requires all pinned transforms; no installer or GL output implementation. */
+/** First-person stage adapter for synthetic and tracked cameras; requires the verified native transforms. */
 public final class ViewpointBackend implements StereoFrame.Backend<Object> {
     public record Extent(int width,int height) {
         public Extent { if(width<=0 || height<=0) throw new IllegalArgumentException("Empty target"); }
@@ -78,7 +78,16 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
     /** The caller must have verified all four target transforms before registering this driver. */
     public static FrameBoundary.Driver synthetic(Access access,Output output,float ipd) {
         if(!Float.isFinite(ipd) || ipd<0 || ipd>0.064f) throw new IllegalArgumentException("Diagnostic IPD must be 0..0.064");
-        Objects.requireNonNull(access); Objects.requireNonNull(output);
+        return cameras(access,output,(center,yaw,pitch,fov)->StereoCamera.synthetic(center,StereoCamera.viewpointLook(yaw,pitch),ipd,fov,fov));
+    }
+    @FunctionalInterface public interface CameraFactory {
+        StereoCamera.Pair create(Vector3f center,float yaw,float pitch,StereoCamera.Fov nativeFov);
+    }
+    public static boolean eligible(Access access,Object drawer) throws IllegalAccessException {
+        return access.eligible(access.get("frame",drawer));
+    }
+    public static FrameBoundary.Driver cameras(Access access,Output output,CameraFactory factory) {
+        Objects.requireNonNull(access); Objects.requireNonNull(output); Objects.requireNonNull(factory);
         return (drawer,original)-> {
             Object frame=access.get("frame",drawer);
             if(!access.eligible(frame)) { original.draw(); return; }
@@ -92,7 +101,7 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
             Vector3f center=new Vector3f((float)access.get("eyeX",frame)-(float)Math.cos(yaw)*0.12f,
                     (float)access.get("eyeY",frame),(float)access.get("eyeZ",frame)-(float)Math.sin(yaw)*0.12f);
             var fov=new StereoCamera.Fov(-1/projection.m00(),1/projection.m00(),-1/projection.m11(),1/projection.m11());
-            var pair=StereoCamera.synthetic(center,StereoCamera.viewpointLook(yaw,pitch),ipd,fov,fov);
+            var pair=Objects.requireNonNull(factory.create(new Vector3f(center),yaw,pitch,fov));
             StereoFrame.render(frame,new ViewpointBackend(access,output,frame,scene,center,pair));
         };
     }

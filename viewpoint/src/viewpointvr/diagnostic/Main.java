@@ -11,6 +11,8 @@ public final class Main {
     private static boolean attempted;
     private static volatile Installation installation;
     private static volatile CaptureController captures;
+    private static volatile RuntimeDriver runtime;
+    private static final java.util.concurrent.atomic.AtomicBoolean tickQueued=new java.util.concurrent.atomic.AtomicBoolean();
     private static volatile String status="Not initialized";
     /** Called by ZombieBuddy in the user's game only. Never invoked by offline tests. */
     public static synchronized void main(String[] args) {
@@ -33,7 +35,8 @@ public final class Main {
                     return target.published()?"Saved stereo pair: "+target.result():"Skipped: use Viewpoint first person, on foot, single player";
                 }
             });
-            FrameBoundary.dispatcher(captures);
+            runtime=new RuntimeDriver(new NativePipeline(access),captures,installed::ready,Main::stopKey,System::nanoTime);
+            FrameBoundary.dispatcher(runtime);
             status=captures.status();
         } catch(Throwable error) {
             FrameBoundary.dispatcher(null);
@@ -47,9 +50,24 @@ public final class Main {
         boolean focused=window!=0 && org.lwjgl.glfw.GLFW.glfwGetWindowAttrib(window,org.lwjgl.glfw.GLFW.GLFW_FOCUSED)==org.lwjgl.glfw.GLFW.GLFW_TRUE;
         return CaptureController.captureChord(focused,org.lwjglx.input.Keyboard::isKeyDown);
     }
+    private static boolean stopKey() {
+        return org.lwjglx.input.Keyboard.isKeyDown(org.lwjglx.input.Keyboard.KEY_PAUSE)
+            && !org.lwjglx.input.Keyboard.isKeyDown(42)&&!org.lwjglx.input.Keyboard.isKeyDown(54)
+            && !org.lwjglx.input.Keyboard.isKeyDown(29)&&!org.lwjglx.input.Keyboard.isKeyDown(157)
+            && !org.lwjglx.input.Keyboard.isKeyDown(56)&&!org.lwjglx.input.Keyboard.isKeyDown(184);
+    }
+    public static String mode(String name){return runtime==null?status:runtime.mode(name);}
+    public static String recenter(){return runtime==null?status:runtime.recenter();}
+    public static String scale(double value){return runtime==null?status:runtime.scale(value);}
+    public static void tick() {
+        if(runtime==null||!tickQueued.compareAndSet(false,true))return;
+        zombie.core.SpriteRenderer.instance.drawGeneric(new zombie.core.textures.TextureDraw.GenericDrawer(){
+            @Override public void render(){try{runtime.idleTick();}finally{tickQueued.set(false);}}
+        });
+    }
     public static String requestCapture() { return captures==null?status:captures.request(); }
     public static String status() {
         if(installation!=null && !installation.ready()) return installation.failure()==null?status:"Disabled: "+installation.failure();
-        return captures==null?status:captures.status();
+        return runtime==null?status:runtime.status();
     }
 }

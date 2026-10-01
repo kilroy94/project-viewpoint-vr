@@ -20,11 +20,15 @@ New-Item -ItemType Directory -Force $classes,$tests,$fixtures,$stageFixtures | O
 $gameCopy = "$PSScriptRoot/build/inputs/game.jar"
 $loaderCopy = "$PSScriptRoot/build/inputs/zombiebuddy.jar"
 $viewpointCopy = "$PSScriptRoot/build/inputs/viewpoint.jar"
+$xrJar = (Resolve-Path (Join-Path $LwjglLibDirectory 'lwjgl-openxr-3.4.1.jar')).Path
+$xrNative = (Resolve-Path (Join-Path $LwjglLibDirectory 'lwjgl-openxr-3.4.1-natives-windows.jar')).Path
+if ((Get-FileHash $xrJar -Algorithm SHA256).Hash.ToLowerInvariant() -ne '184ff11f6140bc48b722b5dfadb1a9611dd9f7b4f18863f627581cdda8a055f2') {throw 'OpenXR binding hash mismatch'}
+if ((Get-FileHash $xrNative -Algorithm SHA256).Hash.ToLowerInvariant() -ne '2884e3449ac10e366cf80f9a2676e822d54bda7f50ff9a61d2d2d32821ee7ffd') {throw 'OpenXR native hash mismatch'}
 $sources = Get-ChildItem "$PSScriptRoot/src" -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
-& "$JavaHome/bin/javac.exe" -Xlint:all -cp "$gameCopy;$loaderCopy" -d $classes $sources
+& "$JavaHome/bin/javac.exe" -Xlint:all -cp "$gameCopy;$loaderCopy;$xrJar" -d $classes $sources
 if ($LASTEXITCODE -ne 0) { throw 'Baseline compilation failed' }
 $testSources = Get-ChildItem "$PSScriptRoot/test" -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
-& "$JavaHome/bin/javac.exe" -Xlint:all -cp "$classes;$gameCopy;$loaderCopy" -d $tests $testSources
+& "$JavaHome/bin/javac.exe" -Xlint:all -cp "$classes;$gameCopy;$loaderCopy;$xrJar" -d $tests $testSources
 if ($LASTEXITCODE -ne 0) { throw 'Test compilation failed' }
 & "$JavaHome/bin/javac.exe" -Xlint:all -d $fixtures "$PSScriptRoot/test-fixtures/viewpoint/SceneDrawer.java"
 if ($LASTEXITCODE -ne 0) { throw 'Synthetic fixture compilation failed' }
@@ -32,13 +36,15 @@ $stageSources = Get-ChildItem "$PSScriptRoot/stage-fixtures" -Recurse -Filter *.
 # Related package-private doubles intentionally share StageSupport.java.
 & "$JavaHome/bin/javac.exe" -Xlint:all,-auxiliaryclass -cp $gameCopy -d $stageFixtures $stageSources
 if ($LASTEXITCODE -ne 0) { throw 'Native stage fixture compilation failed' }
-$testClasspath = "$tests;$classes;$gameCopy;$loaderCopy"
-foreach ($test in @('viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest')) {
+$testClasspath = "$tests;$classes;$gameCopy;$loaderCopy;$xrJar"
+foreach ($test in @('viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
     & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath $test $fixtures
     if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
 }
 & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath viewpointvr.instrument.StageFixtureTest $stageFixtures
 if ($LASTEXITCODE -ne 0) { throw 'Native stage fixture failed' }
+& "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath viewpointvr.diagnostic.LuaSyntaxTest "$PSScriptRoot/mod/42/media/lua/client/ProjectViewpointVR.lua"
+if ($LASTEXITCODE -ne 0) { throw 'Lua controls syntax check failed' }
 & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath viewpointvr.diagnostic.CaptureTest $run
 if ($LASTEXITCODE -ne 0) { throw 'Capture/controller fixture failed' }
 @'
@@ -70,10 +76,16 @@ if ($LwjglLibDirectory) {
     $glClasspath = $glJars -join ';'
     & "$JavaHome/bin/java.exe" --enable-native-access=ALL-UNNAMED -ea -cp "$tests;$classes;$glClasspath" viewpointvr.diagnostic.GpuOutputTest "$run/gpu"
     if ($LASTEXITCODE -ne 0) { throw 'Standalone hidden OpenGL test failed' }
+    $previousRuntime=$env:XR_RUNTIME_JSON
+    try {
+        $env:XR_RUNTIME_JSON=Join-Path $run 'viewpoint-no-runtime.json'
+        & "$JavaHome/bin/java.exe" --enable-native-access=ALL-UNNAMED -ea -cp "$tests;$classes;$glClasspath;$xrJar;$xrNative" viewpointvr.xr.MissingRuntimeTest
+        if ($LASTEXITCODE -ne 0) {throw 'OpenXR missing-runtime test failed'}
+    } finally {$env:XR_RUNTIME_JSON=$previousRuntime}
     $gpuPassed = $true
 }
 & "$JavaHome/bin/jar.exe" --create --file "$run/viewpoint-vr-core.jar" -C $classes .
 if ($LASTEXITCODE -ne 0) { throw 'Core packaging failed' }
 Write-Host "Test evidence and non-installable core JAR: $run"
-@{ run=$run; classes=$classes; gpuPassed=$gpuPassed } | ConvertTo-Json | Set-Content "$PSScriptRoot/build/latest-run.json" -Encoding UTF8
+@{ run=$run; classes=$classes; gpuPassed=$gpuPassed; xrJar=$xrJar; xrNative=$xrNative } | ConvertTo-Json | Set-Content "$PSScriptRoot/build/latest-run.json" -Encoding UTF8
 Write-Host 'Viewpoint tests passed. No game/mod entry point or SteamVR was launched.'

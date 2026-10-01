@@ -1,4 +1,4 @@
-"""Package only successfully tested production classes and authored mod assets."""
+"""Package tested production classes/assets and hash-pinned OpenXR dependencies."""
 import hashlib
 import io
 import json
@@ -32,6 +32,14 @@ def main():
         jar.writestr("META-INF/MANIFEST.MF", f"Manifest-Version: 1.0\r\nImplementation-Title: Project Viewpoint VR\r\nImplementation-Version: {version}\r\n\r\n")
         for source, name in zip(entries, names):
             jar.write(source, name)
+    with zipfile.ZipFile(buffer,"a",zipfile.ZIP_DEFLATED) as jar:
+        for key,expected in [("xrJar","184ff11f6140bc48b722b5dfadb1a9611dd9f7b4f18863f627581cdda8a055f2"),("xrNative","2884e3449ac10e366cf80f9a2676e822d54bda7f50ff9a61d2d2d32821ee7ffd")]:
+            source=Path(record[key])
+            if hashlib.sha256(source.read_bytes()).hexdigest()!=expected: raise RuntimeError("OpenXR dependency hash mismatch")
+            with zipfile.ZipFile(source) as dependency:
+                for entry in dependency.infolist():
+                    if entry.is_dir() or entry.filename.endswith("module-info.class") or entry.filename=="META-INF/MANIFEST.MF": continue
+                    if entry.filename not in jar.namelist(): jar.writestr(entry.filename,dependency.read(entry))
     jar_bytes = buffer.getvalue()
     jar_hash = hashlib.sha256(jar_bytes).hexdigest()
     dist = HERE / "dist"
@@ -45,6 +53,7 @@ def main():
                 package.write(source, base + source.relative_to(HERE / "mod").as_posix())
         package.writestr(base + "42/media/java/client/ProjectViewpointVR.jar", jar_bytes)
         package.write(HERE / "TESTING.md", base + "README.md")
+        for license in sorted((HERE / "licenses").glob("*")): package.write(license,base+"licenses/"+license.name)
         package.writestr(base + "SHA256.txt", jar_hash + "  42/media/java/client/ProjectViewpointVR.jar\n")
     with zipfile.ZipFile(archive) as check:
         if check.testzip() is not None:

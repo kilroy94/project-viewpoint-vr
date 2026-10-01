@@ -91,6 +91,27 @@ public final class LwjglGraphics implements CaptureOutput.Graphics {
             check("present captured world");
         } finally { state.restore().restore(); }
     }
+    public void mirrorPair(int left,int right,int width,int height,ViewpointBackend.SavedOutput destination) throws Throwable {
+        // Letterbox each eye to preserve its aspect ratio inside one desktop half.
+        var state=save();
+        try {
+            glBindFramebuffer(GL_DRAW_FRAMEBUFFER,destination.drawFbo());
+            glDisable(GL_SCISSOR_TEST);glDisable(GL_FRAMEBUFFER_SRGB);glColorMask(true,true,true,true);
+            glEnable(GL_SCISSOR_TEST);glScissor(destination.x(),destination.y(),destination.viewport().width(),destination.viewport().height());
+            glClearColor(0,0,0,1);glClear(GL_COLOR_BUFFER_BIT);glDisable(GL_SCISSOR_TEST);
+            int half=destination.viewport().width()/2;
+            for(int eye=0;eye<2;eye++) {
+                int target=eye==0?left:right;owned(target);
+                int slot=eye==0?half:destination.viewport().width()-half;
+                float scale=Math.min((float)slot/width,(float)destination.viewport().height()/height);
+                int w=Math.max(1,Math.round(width*scale)),h=Math.max(1,Math.round(height*scale));
+                int x=destination.x()+eye*half+(slot-w)/2,y=destination.y()+(destination.viewport().height()-h)/2;
+                glBindFramebuffer(GL_READ_FRAMEBUFFER,target);glReadBuffer(GL_COLOR_ATTACHMENT0);
+                glBlitFramebuffer(0,0,width,height,x,y,x+w,y+h,GL_COLOR_BUFFER_BIT,GL_LINEAR);
+            }
+            check("stereo mirror");
+        } finally {state.restore().restore();}
+    }
     private void owned(int target) { if(!textures.containsKey(target)) throw new IllegalArgumentException("Unowned eye target"); }
     private static void check(String stage) { int error=glGetError(); if(error!=GL_NO_ERROR) throw new IllegalStateException(stage+": GL error "+error); }
 }

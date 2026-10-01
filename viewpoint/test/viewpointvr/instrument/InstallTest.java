@@ -65,7 +65,7 @@ public final class InstallTest {
         };
         instrumentation.addTransformer(observer,true);
         try{instrumentation.retransformClasses(targets);}finally{instrumentation.removeTransformer(observer);}
-        check(restored.get()==4,"All four native classes restored");
+        check(restored.get()==targets.length,"All native classes restored");
         System.out.println("Loader activation/rollback: "+checks+" checks passed on uninitialized copied classes");
     }
 }

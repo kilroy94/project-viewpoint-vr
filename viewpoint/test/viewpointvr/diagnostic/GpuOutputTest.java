@@ -64,6 +64,26 @@ public final class GpuOutputTest {
             }
             check(glIsFramebuffer(read) && glIsFramebuffer(draw),"Borrowed caller FBOs never deleted");
             glBindFramebuffer(GL_FRAMEBUFFER,0);offscreen.delete(read);offscreen.delete(draw);
+            glBindBuffer(GL_PIXEL_PACK_BUFFER,0);glBindBuffer(GL_PIXEL_UNPACK_BUFFER,0);
+            glPixelStorei(GL_PACK_SKIP_PIXELS,0);glPixelStorei(GL_PACK_ROW_LENGTH,0);glPixelStorei(GL_PACK_SKIP_ROWS,0);
+            glColorMask(true,true,true,true);glDisable(GL_SCISSOR_TEST);glDisable(GL_FRAMEBUFFER_SRGB);glViewport(0,0,200,150);
+            var liveGl=new LwjglGraphics();int first=0;int[] pairIds=new int[2];
+            try(var live=new LiveOutput(liveGl)) {
+                for(int frame=0;frame<3;frame++) {
+                    live.begin(80,60,null);var state=live.save();
+                    for(int eye=0;eye<2;eye++) {live.bind(eye);pairIds[eye]=glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);if(eye==0&&frame==0)first=pairIds[0];if(eye==0)check(first==pairIds[0],"Live target reused");glClearColor(eye==0?1:0,0,eye==1?1:0,1);glClear(GL_COLOR_BUFFER_BIT);live.copy(eye);}
+                    state.restore().restore();live.publish();check(live.published(),"Live pair published");
+                }
+                var pixels=java.nio.ByteBuffer.allocateDirect(4);glReadPixels(50,75,1,1,GL_RGBA,GL_UNSIGNED_BYTE,pixels);check((pixels.get(0)&255)==255&&(pixels.get(2)&255)==0,"Left mirror slot");
+                glReadPixels(150,75,1,1,GL_RGBA,GL_UNSIGNED_BYTE,pixels);check((pixels.get(0)&255)==0&&(pixels.get(2)&255)==255,"Right mirror slot");
+                live.begin(96,64,null);var state=live.save();
+                var size=live.bind(0);int resized=glGetInteger(GL_DRAW_FRAMEBUFFER_BINDING);
+                int attachment=glGetFramebufferAttachmentParameteri(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0,GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME);
+                glBindTexture(GL_TEXTURE_2D,attachment);
+                check(size.width()==96&&size.height()==64&&glGetTexLevelParameteri(GL_TEXTURE_2D,0,GL_TEXTURE_WIDTH)==96&&glGetTexLevelParameteri(GL_TEXTURE_2D,0,GL_TEXTURE_HEIGHT)==64,"Resize allocates requested texture extent");
+                pairIds[1]=resized;state.restore().restore();
+            }
+            check(!glIsFramebuffer(pairIds[1]),"Live close retires eye");
             check(glGetError()==GL_NO_ERROR,"No final GL errors");
             glDeleteTextures(texture);glDeleteBuffers(pack);glDeleteBuffers(unpack);
             System.out.println("Standalone GPU output: "+checks+" checks passed; "+glGetString(GL_RENDERER));
