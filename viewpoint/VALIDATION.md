@@ -1,5 +1,19 @@
 # Viewpoint baseline validation
 
+## Current Viewpoint port: 0.6.1
+
+The user requires following the latest available Viewpoint and explicitly rejects maintaining old-version compatibility. This supersedes the previous UI-stage deferral. The sole supported Viewpoint target is now **0.1.5a-hotfix**, SHA-256 `94fedda302ab6c17ba1b38495789e4c9781d52823fb8204214c85402e3cab41f`; 0.1.3 is no longer accepted. Game and ZombieBuddy pins are unchanged. Java transform pins now share BinaryPins.VIEWPOINT to avoid divergent hard-coded values.
+
+Read-only Steam metadata showed the installed and latest manifest both equal `9102883971095548858`, with update timestamp 2026-10-01 08:41:20 UTC. The public [Workshop change notes](https://steamcommunity.com/sharedfiles/filedetails/changelog/3809306528) list the October 1 crash-to-isometric hotfix as the latest entry. The installed descriptor identifies 0.1.5a-hotfix. No Workshop content or Steam configuration was modified.
+
+The port adapts PackLinks.follow, post-processing moved into WorldRenderer.passes, the additional FarPass shadow argument and the new MousePick signature. It calls the current native late mouse read and Camera.eye once per pair, preserving lean; it records native latency once and restores the new freeCamera flag. The native postRender corpse release remains untouched. A fifth visibility target, CorpseView, keeps the new corpse cone from excluding head-turned views while preserving native distance/count budgets. Settings and onboarding share the captured ImGui path.
+
+Iris/Minecraft shader packs remain outside stereo support: a selected Iris pack delegates normal Viewpoint drawing before pair ownership. IrisMode.draw is suppressed inside an owned pair to prevent its separate rendering path from running during preparation or an eye pass. A selection change during a pair rejects that incomplete pair and cleans up. Tests cover inactive native Iris calls, pre-pair rejection and selection changes after the left eye. Switch Off before changing shader packs; native Viewpoint shader packs remain the supported stereo path.
+
+Full build evidence: `build/runs/f56d976bdf994036a389b1d652e47ac1/`. Passed **239 native-stage fixture checks**, **15 copied-target installation/rollback checks**, **59 UI GPU checks**, **32 output GPU checks**, and the existing 12 UI bridge, 256 camera, 485 lifecycle, 32 entry, 21 XR camera, 16 runtime, 38 capture, 17 copied-entry and 4 Python checks. The original-boundary checker now validates 6 methods / 23 invocation anchors; stage transforms validate 30 anchors. All eleven copied target classes passed verification/retransformation and no-initialization audits. New fixtures cover native lean/late yaw, once-only camera/latency work, free-camera-state restoration and Iris selection. Copied corpse-cone returns all pass through the timed VR visibility wrapper; already-transformed input is rejected.
+
+The 0.6.1 ZIP contains 67 verified production classes plus pinned OpenXR dependencies, with no proprietary/test classes or personal absolute paths. The packaged loader passed the isolated missing-runtime test. ZIP SHA-256: `08239aa9cefda39367cae4f661b243e98417eb4ccbe15f843741c1b7b6878885`. No game/mod entry point or SteamVR was launched. The updated renderer/UI combination still requires the user's desktop/null-headset test; earlier version confirmations do not validate this port. Physical-headset testing remains deferred.
+
 ## UI milestone 0.6.0 and confirmed earlier tests
 
 The user confirmed tests 1 and 2 (continuous desktop stereo and null-headset XR) without issues, and explicitly deferred physical-headset testing because a playtester is no longer available. This is user-reported live validation of the earlier 0.5.0 modes, not physical tracking/comfort verification or evidence for the new UI implementation.

@@ -61,7 +61,7 @@ public final class RuntimeDriver implements FrameBoundary.Driver {
         try {
             transition();
             if(active==Mode.OFF){capture.render(drawer,original);return;}
-            if(!pipeline.eligible(drawer)){Visibility.off();pipeline.idle();original.draw();status="Suspended: first person, on foot, single player required";return;}
+            if(!pipeline.eligible(drawer)){Visibility.off();pipeline.idle();original.draw();status="Suspended: use first person on foot, single player, native Viewpoint shaders";return;}
             Visibility.touch();
             if(warmup>0){warmup--;original.draw();return;}
             if(active==Mode.DESKTOP){pipeline.desktop(drawer,original);status="Desktop stereo active (no PNG readback)";return;}

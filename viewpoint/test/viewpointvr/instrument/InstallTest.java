@@ -27,6 +27,22 @@ public final class InstallTest {
                 try(var in=jar.getInputStream(jar.getJarEntry(name+".class"))){expected.put(name,CanonicalClass.encode(in.readAllBytes()));}
             }
         }
+        var visibilityTransform=new VisibilityTransform(mod);
+        try(var jar=new JarFile(mod.toFile());var in=jar.getInputStream(jar.getJarEntry("viewpoint/models/CorpseView.class"))){
+            byte[] transformed=visibilityTransform.transform("viewpoint/models/CorpseView",in.readAllBytes());
+            int[] returns={0},wrapped={0};
+            new ClassReader(transformed).accept(new ClassVisitor(ASM9){
+                public MethodVisitor visitMethod(int a,String name,String desc,String signature,String[] exceptions){
+                    if(!name.equals("sees")||!desc.equals("(FFF)Z"))return null;
+                    return new MethodVisitor(ASM9){
+                        public void visitInsn(int op){if(op==IRETURN)returns[0]++;}
+                        public void visitMethodInsn(int op,String owner,String method,String d,boolean itf){if(owner.equals("viewpointvr/Visibility")&&method.equals("visible")&&d.equals("(Z)Z"))wrapped[0]++;}
+                    };
+                }
+            },0);
+            check(returns[0]>0&&returns[0]==wrapped[0],"Every corpse-cone result passes through timed VR visibility");
+            rejects(()->visibilityTransform.transform("viewpoint/models/CorpseView",transformed));
+        }
         var uiTransform=new UiTransform(mod);
         try(var jar=new JarFile(mod.toFile())){
             for(String name:UiTransform.TARGETS)try(var in=jar.getInputStream(jar.getJarEntry(name+".class"))){

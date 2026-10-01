@@ -15,7 +15,7 @@ import static net.bytebuddy.jar.asm.Opcodes.*;
 /** Offline transform; callers must separately establish loader ownership and verify output. */
 public final class EntryTransform {
     public static final String TARGET = "viewpoint/SceneDrawer";
-    private static final String PIN = "8e2aa52087c9c111c09f28e8ee1f8f50fc8d9132c20c533a05305e134a7d695c";
+    private static final String PIN = viewpointvr.diagnostic.BinaryPins.VIEWPOINT;
     private final byte[] expected;
 
     private EntryTransform(byte[] original) { expected = CanonicalClass.encode(original); }

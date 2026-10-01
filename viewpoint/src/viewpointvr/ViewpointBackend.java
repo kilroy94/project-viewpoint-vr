@@ -32,12 +32,12 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
             Class<?> scene=load(loader,"viewpoint.render.SceneData"), world=load(loader,"viewpoint.render.WorldRenderer");
             Class<?> context=load(loader,"viewpoint.render.FrameContext");
             add("frame",drawer,"frame",frame);
-            add("scene",frame,"scene",scene); add("number",frame,"number",long.class);
+            add("scene",frame,"scene",scene); add("number",frame,"number",long.class); add("takenNanos",frame,"takenNanos",long.class);
             for(String n:List.of("eyeX","eyeY","eyeZ","viewYaw","viewPitch")) add(n,frame,n,float.class);
             add("projection",scene,"projection",Matrix4f.class);
             add("context",world,"frame",context);
             for(String n:List.of("handView","cullView")) add(n,world,n,Matrix4f.class);
-            for(String n:List.of("handFromPlayer","cullFromPlayer")) add(n,world,n,boolean.class);
+            for(String n:List.of("handFromPlayer","cullFromPlayer","freeCamera")) add(n,world,n,boolean.class);
             for(String n:List.of("outputDrawFbo","outputReadFbo")) add(n,context,n,int.class);
             add("outputScissor",context,"outputScissor",boolean.class); add("viewport",context,"viewport",int[].class);
             add("generation",load(loader,"viewpoint.platform.HotReload"),"generation",int.class);
@@ -52,6 +52,13 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
             for(String n:List.of("drawTranslucent","drawIndirect","finish")) method(n,world,n,scene);
             method("weather",world,"drawWeather",scene,float.class,float.class,float.class);
             method("release",load(loader,"viewpoint.models.Models"),"release",frame);
+            Class<?> look=load(loader,"viewpoint.input.Look");
+            add("lookYaw",look,"yaw",float.class);add("lookPitch",look,"pitch",float.class);
+            add("captured",look,"captured",boolean.class);add("readNanos",look,"readNanos",long.class);
+            method("readLook",look,"readBeforeDrawing");
+            method("eye",load(loader,"viewpoint.input.Camera"),"eye",frame,float.class,float[].class);
+            add("iris",load(loader,"viewpoint.platform.IrisPacks"),"active",load(loader,"viewpoint.platform.IrisPacks$Active"));
+            method("latency",load(loader,"viewpoint.render.Latency"),"viewBuilt",long.class,long.class,long.class,long.class);
             Class<?> retirement=load(loader,"viewpoint.render.Retirement");
             method("collect",retirement,"collect"); method("drawn",retirement,"drawn",long.class);
         }
@@ -71,11 +78,11 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
         Object call(String key,Object... args) throws Throwable { return methods.get(key).invokeWithArguments(args); }
         boolean eligible(Object frame) throws IllegalAccessException {
             return !(boolean)get("third",null) && !(boolean)get("free",null) && !(boolean)get("client",null)
-                    && !(boolean)get("server",null) && !(boolean)get("seated",get("squares",frame));
+                    && get("iris",null)==null && !(boolean)get("server",null) && !(boolean)get("seated",get("squares",frame));
         }
     }
 
-    /** The caller must have verified all four target transforms before registering this driver. */
+    /** The caller must have verified all required target transforms before registering this driver. */
     public static FrameBoundary.Driver synthetic(Access access,Output output,float ipd) {
         if(!Float.isFinite(ipd) || ipd<0 || ipd>0.064f) throw new IllegalArgumentException("Diagnostic IPD must be 0..0.064");
         return cameras(access,output,(center,yaw,pitch,fov)->StereoCamera.synthetic(center,StereoCamera.viewpointLook(yaw,pitch),ipd,fov,fov));
@@ -97,9 +104,10 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
                     || !Float.isFinite(projection.m11()) || projection.m00()<=0 || projection.m11()<=0) {
                 original.draw(); return;
             }
-            float yaw=(float)access.get("viewYaw",frame), pitch=(float)access.get("viewPitch",frame);
-            Vector3f center=new Vector3f((float)access.get("eyeX",frame)-(float)Math.cos(yaw)*0.12f,
-                    (float)access.get("eyeY",frame),(float)access.get("eyeZ",frame)-(float)Math.sin(yaw)*0.12f);
+            access.call("readLook");
+            float yaw=(float)access.get("lookYaw",null), pitch=(float)access.get("lookPitch",null);
+            float[] nativeEye=new float[3];access.call("eye",frame,yaw,nativeEye);
+            Vector3f center=new Vector3f(nativeEye[0],nativeEye[1],nativeEye[2]);
             var fov=new StereoCamera.Fov(-1/projection.m00(),1/projection.m00(),-1/projection.m11(),1/projection.m11());
             var pair=Objects.requireNonNull(factory.create(new Vector3f(center),yaw,pitch,fov));
             StereoFrame.render(frame,new ViewpointBackend(access,output,frame,scene,center,pair));
@@ -123,7 +131,7 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
         Matrix4f projection=new Matrix4f((Matrix4f)access.get("projection",scene));
         Matrix4f hand=new Matrix4f((Matrix4f)access.get("handView",null));
         Matrix4f cull=new Matrix4f((Matrix4f)access.get("cullView",null));
-        Object handFlag=access.get("handFromPlayer",null), cullFlag=access.get("cullFromPlayer",null);
+        Object handFlag=access.get("handFromPlayer",null), cullFlag=access.get("cullFromPlayer",null), freeFlag=access.get("freeCamera",null);
         Object context=access.get("context",null);
         SavedOutput saved=Objects.requireNonNull(output.save(),"saved output");
         try { scope=StageHooks.open(); }
@@ -135,7 +143,7 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
                     ((Matrix4f)access.get("projection",scene)).set(projection);
                 ((Matrix4f)access.get("handView",null)).set(hand);
                 ((Matrix4f)access.get("cullView",null)).set(cull);
-                access.set("handFromPlayer",null,handFlag); access.set("cullFromPlayer",null,cullFlag);
+                access.set("handFromPlayer",null,handFlag); access.set("cullFromPlayer",null,cullFlag);access.set("freeCamera",null,freeFlag);
             } catch(Throwable error) { failure=error; }
             // The enclosing native catch invokes restoreOutput too: it must point at the real caller,
             // never the final eye FBO left in FrameContext by begin().
@@ -152,9 +160,10 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
     }
     public boolean prepare(Object snapshot) throws Throwable {
         access.call("collect");
+        access.call("latency",System.nanoTime(),(boolean)access.get("captured",null)?(long)access.get("readNanos",null):0L,number,(long)access.get("takenNanos",frame));
         extent=Objects.requireNonNull(output.bind(0));
         // Keep native hand/flashlight placement centered while the visual camera moves between eyes.
-        access.set("handFromPlayer",null,true); access.set("cullFromPlayer",null,false);
+        access.set("handFromPlayer",null,true); access.set("cullFromPlayer",null,false);access.set("freeCamera",null,false);
         Matrix4f view=new Matrix4f(pair.left().view()).translate(new Vector3f(pair.left().position()).sub(center));
         ((Matrix4f)access.get("handView",null)).set(view);
         started=true;

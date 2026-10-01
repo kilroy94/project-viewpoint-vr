@@ -9,7 +9,7 @@ import viewpointvr.diagnostic.BinaryPins;
 
 /** Pinned return/field-read wrappers; no native schema change or game initialization. */
 public final class VisibilityTransform {
-    public static final List<String> TARGETS=List.of("viewpoint/world/ChunkWalk","viewpoint/models/Characters","viewpoint/models/ModelCull","viewpoint/visibility/Rooms");
+    public static final List<String> TARGETS=List.of("viewpoint/world/ChunkWalk","viewpoint/models/Characters","viewpoint/models/ModelCull","viewpoint/visibility/Rooms","viewpoint/models/CorpseView");
     private final Map<String,byte[]> expected=new HashMap<>();
     public VisibilityTransform(Path jar) throws Exception {
         BinaryPins.check(jar,Set.of(BinaryPins.VIEWPOINT));
@@ -23,6 +23,7 @@ public final class VisibilityTransform {
                 return new MethodVisitor(ASM9,super.visitMethod(access,method,desc,signature,exceptions)) {
                     public void visitInsn(int op) {
                         String policy=null;
+                        if(name.endsWith("/CorpseView")&&method.equals("sees")&&desc.equals("(FFF)Z"))policy="visible";
                         if(name.endsWith("/ChunkWalk")&&method.equals("inView")&&desc.equals("(FFFFFF)Z"))policy="visible";
                         if(name.endsWith("/Characters")&&method.equals("behind")&&desc.equals("(Lzombie/iso/IsoMovingObject;FFFF)Z"))policy="hidden";
                         if(name.endsWith("/ModelCull")&&method.equals("wanted")&&desc.equals("(Lzombie/iso/IsoMovingObject;Lzombie/characters/IsoPlayer;)Z"))policy="visible";

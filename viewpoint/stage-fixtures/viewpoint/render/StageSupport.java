@@ -17,5 +17,8 @@ final class CellLightPages { static void update(){Probe.hit("cellLight");} }
 final class TreeBaker { void bake(){Probe.hit("trees");} }
 final class ShadowPass { void draw(FrameContext f){Probe.hit("shadows");} }
 final class WeatherMap { void draw(FrameContext f){Probe.hit("weatherMap");} }
-final class MousePick { static void read(FrameContext f,Targets t){Probe.hit("mousePick");} }
+final class MousePick { static void read(FrameContext f,int target,org.joml.Matrix4f inverse){Probe.hit("mousePick");} }
 final class FarShadow { void draw(FrameContext f,float range,int mask,int shell,boolean quiet){Probe.hit("farShadows");} }
+
+final class PackLinks { static void follow(){Probe.hit("pack");} }
+final class IrisMode { static boolean draw(FrameContext f,ShadowPass s,ModelPass m,FarPass far){Probe.hit("iris");return false;} }

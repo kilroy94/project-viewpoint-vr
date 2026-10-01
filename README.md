@@ -2,13 +2,13 @@
 
 A new Viewpoint-based VR project for Project Zomboid, forked from the preserved PZ3D VR implementation. Viewpoint is the sole renderer target; useful OpenXR, capture and interaction code will be reused as needed.
 
-**Current milestone: headset UI, 0.6.0.** A transparent, head-following panel combines Zomboid UI, Viewpoint loot/performance overlays and its settings window, with a mouse-position marker. Desktop keyboard/mouse interaction is retained. The user confirmed the earlier continuous desktop and null-headset tests without issues; physical-headset testing is deferred. The new UI needs its first in-game test.
+**Current milestone: headset UI on current Viewpoint, 0.6.1.** A transparent, head-following panel combines Zomboid UI, Viewpoint loot/performance overlays and its settings window, with a mouse-position marker. Desktop keyboard/mouse interaction is retained. The user confirmed the earlier continuous desktop and null-headset tests without issues; physical-headset testing is deferred. The new UI needs its first in-game test.
 
-**Requires the pinned Viewpoint 0.1.3 binary.** The currently installed Workshop update is 0.1.5a-hotfix and is deliberately rejected. At the user's request, compatibility with that update is a separate next step; this UI package cannot yet be used with it.
+**Targets Viewpoint 0.1.5a-hotfix.** Development follows the latest available Viewpoint; older versions are no longer supported. Exact binary checks remain in place so an unaudited future update cannot silently run incompatible hooks. This update still needs an in-game test.
 
-Start with the [manual installation/capture guide](viewpoint/TESTING.md), [build and tests](viewpoint/README.md), [integration plan](docs/VIEWPOINT-PLAN.md) and [validation record](viewpoint/VALIDATION.md). Target binaries: Viewpoint 0.1.3, Project Zomboid 42.21.0 and ZombieBuddy 2.3.2 (original or the audited B42.21 temporary fix).
+Start with the [manual installation/capture guide](viewpoint/TESTING.md), [build and tests](viewpoint/README.md), [integration plan](docs/VIEWPOINT-PLAN.md) and [validation record](viewpoint/VALIDATION.md). Target binaries: Viewpoint 0.1.5a-hotfix, Project Zomboid 42.21.0 and ZombieBuddy 2.3.2 (original or the audited B42.21 temporary fix).
 
-After manual installation, use the on-screen Off/Desktop/XR fixed/XR tracked controls. Pause/Break alone switches Off; Shift+Pause/Break saves a PNG pair while Off. The generated archive is `viewpoint/dist/ProjectViewpointVR-0.6.0.zip`; this repository does not track generated binaries. SteamVR is needed only for its headset modes when SteamVR is your OpenXR runtime.
+After manual installation, use the on-screen Off/Desktop/XR fixed/XR tracked controls. Pause/Break alone switches Off; Shift+Pause/Break saves a PNG pair while Off. The generated archive is `viewpoint/dist/ProjectViewpointVR-0.6.1.zip`; this repository does not track generated binaries. SteamVR is needed only for its headset modes when SteamVR is your OpenXR runtime.
 
 ## Inherited reference code
 

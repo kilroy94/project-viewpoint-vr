@@ -32,7 +32,7 @@ public final class Main {
             captures=new CaptureController(installed::ready,Main::captureKey,System::nanoTime,(scene,original)-> {
                 try(var target=new CaptureOutput(new LwjglGraphics(),output)) {
                     ViewpointBackend.synthetic(access,target,.064f).render(scene,original);
-                    return target.published()?"Saved stereo pair: "+target.result():"Skipped: use Viewpoint first person, on foot, single player";
+                    return target.published()?"Saved stereo pair: "+target.result():"Skipped: use Viewpoint first person, on foot, single player, native Viewpoint shaders";
                 }
             });
             UiBridge.queue(action->zombie.core.SpriteRenderer.instance.drawGeneric(new zombie.core.textures.TextureDraw.GenericDrawer(){

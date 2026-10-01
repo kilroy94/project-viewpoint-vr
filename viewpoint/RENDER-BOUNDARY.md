@@ -4,7 +4,7 @@ This document describes the preserved 0.2.0 lifecycle/entry contract. The subseq
 
 ## Entry hook
 
-`EntryTransform.fromPinnedJar` accepts only the audited Viewpoint 0.1.3 JAR. It extracts the reference class from the same bytes whose hash was verified, avoiding a second-read substitution. `transform` compares normalized executable instructions and schema against that reference. Normalization reuses the inherited PZ3D installer approach to allow JVM constant-pool and method reordering, excluding debug/stack-map attributes. Changed executable code, unknown targets and already patched input are rejected.
+`EntryTransform.fromPinnedJar` now accepts only the audited Viewpoint 0.1.5a-hotfix JAR (updated in 0.6.1); the lifecycle design below originated in 0.2.0. It extracts the reference class from the same bytes whose hash was verified, avoiding a second-read substitution. `transform` compares normalized executable instructions and schema against that reference. Normalization reuses the inherited PZ3D installer approach to allow JVM constant-pool and method reordering, excluding debug/stack-map attributes. Changed executable code, unknown targets and already patched input are rejected.
 
 The only edit replaces the single `SceneDrawer.render -> drawFrame` invocation with `FrameBoundary.draw(receiver, nativeMethodHandle)`. The private handle resolves using the original caller's privileges. No fields or methods are added; all non-render methods stay unchanged. Existing exception handlers and GL-state restoration remain around the new call site. The transformer preserves stack maps and recomputes maximum stack use because its control flow and boundary stack shape are unchanged.
 

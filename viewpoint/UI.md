@@ -1,6 +1,6 @@
-# Headset UI implementation (0.6.0)
+# Headset UI implementation (0.6.1)
 
-Target: exact-pinned Viewpoint 0.1.3 and Zomboid 42.21.0. Decompiled classes informed call-site selection only; no dependency source or binaries are distributed. The 0.1.5a-hotfix Workshop update was discovered during this work. It changes 326 archive entries including SceneDrawer, WorldRenderer, FarPass, Hooks and ImGuiFrame. At the user's explicit request its compatibility work is deferred; binary pins are unchanged.
+Target: exact-pinned Viewpoint 0.1.5a-hotfix and Zomboid 42.21.0. Decompiled classes informed call-site selection only; no dependency source or binaries are distributed. The current update preserves the audited UI capture call sites. The new setup wizard uses the same ImGuiFrame draw-data path as settings and is captured by that hook. Older Viewpoint binaries are no longer accepted.
 
 ## Capture boundaries
 
@@ -19,4 +19,4 @@ Desktop keyboard/mouse interaction remains unchanged. A small high-contrast mark
 
 ## Verification boundary
 
-The hidden OpenGL test verifies transparent compositing, alpha, stencil clipping/reset, overlay order, desktop restoration, retained/expired vanilla contents, disappearing overlays, resize, cursor visibility and failure restoration. Bridge tests check queued ordering, native exceptions, once-only invocation, obsolete callbacks and capture failure. Both additional pinned classes are verified/retransformed without initialization alongside the eight existing targets; altered/already-patched inputs are rejected. No game/mod entry point or SteamVR is launched. See VALIDATION.md for the final build record and TESTING.md for the user's eventual null-headset test.
+The hidden OpenGL test verifies transparent compositing, alpha, stencil clipping/reset, overlay order, desktop restoration, retained/expired vanilla contents, disappearing overlays, resize, cursor visibility and failure restoration. Bridge tests check queued ordering, native exceptions, once-only invocation, obsolete callbacks and capture failure. Both additional pinned classes are verified/retransformed without initialization alongside the nine renderer/visibility targets; altered/already-patched inputs are rejected. No game/mod entry point or SteamVR is launched. See VALIDATION.md for the final build record and TESTING.md for the user's eventual null-headset test.

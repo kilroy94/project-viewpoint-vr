@@ -37,7 +37,7 @@ public final class StageFixtureTest {
     private static long count(List<String> events,String name) { return events.stream().filter(name::equals).count(); }
     @SuppressWarnings({"unchecked","try"})
     public static void main(String[] args) throws Throwable {
-        List<String> scenarios=List.of("inactive","success","skipped","models","world","rightWorld","finish","copy0","copy1","texturesRelease","restore","extent","recycle","generation","third","offAxis");
+        List<String> scenarios=List.of("inactive","success","skipped","models","world","rightWorld","finish","copy0","copy1","texturesRelease","restore","extent","recycle","generation","third","iris","irisSwitch","offAxis");
         for(String scenario:scenarios) try(var loader=new Loader(Path.of(args[0]))) {
             var access=new ViewpointBackend.Access(loader);
             Class<?> drawerType=loader.loadClass("viewpoint.SceneDrawer");
@@ -54,7 +54,7 @@ public final class StageFixtureTest {
                         .invoke(null,scene,new Matrix4f(),0f,0f,0f);
                 world.getMethod("finish",scene.getClass()).invoke(null,scene);
                 check(count(events,"world")==1 && count(events,"stream")==1 && count(events,"texturesRelease")==1,"Inactive transformed stages preserve ordinary work");
-                check(events.contains("jitter") && events.contains("resolve") && events.contains("passes") && events.contains("packHistory"),"Inactive scope preserves native temporal/pack behavior");
+                check(events.contains("iris") && events.contains("jitter") && events.contains("resolve") && events.contains("passes") && events.contains("packHistory"),"Inactive scope preserves native temporal/pack behavior");
                 continue;
             }
             List<Matrix4f> views=new ArrayList<>();
@@ -63,6 +63,7 @@ public final class StageFixtureTest {
             if(scenario.equals("rightWorld")) { probe.getField("fail").set(null,"world"); probe.getField("failOccurrence").setInt(null,2); }
             if(scenario.equals("skipped")) probe.getField("skip").setBoolean(null,true);
             if(scenario.equals("third")) loader.loadClass("viewpoint.input.ThirdPerson").getField("active").setBoolean(null,true);
+            if(scenario.equals("iris"))loader.loadClass("viewpoint.platform.IrisPacks").getField("active").set(null,loader.loadClass("viewpoint.platform.IrisPacks$Active").getConstructor().newInstance());
             var output=new ViewpointBackend.Output() {
                 public ViewpointBackend.SavedOutput save() {
                     events.add("save");
@@ -86,34 +87,37 @@ public final class StageFixtureTest {
                     hands.add(new Matrix4f((Matrix4f)staticGet(world,"handView")));
                     if(scenario.equals("copy"+eye)) throw new IllegalStateException("copy failure");
                     if(scenario.equals("recycle") && eye==0) set(frame,"number",8L);
+                    if(scenario.equals("irisSwitch") && eye==0)loader.loadClass("viewpoint.platform.IrisPacks").getField("active").set(null,loader.loadClass("viewpoint.platform.IrisPacks$Active").getConstructor().newInstance());
                     if(scenario.equals("generation") && eye==0) loader.loadClass("viewpoint.platform.HotReload").getField("generation").setInt(null,1);
                 }
                 public void publish() { events.add("publish"); }
             };
             try(var scope=FrameBoundary.register(ViewpointBackend.synthetic(access,output,.064f))) { drawerType.getMethod("render").invoke(drawer); }
             Throwable caught=(Throwable)get(drawer,"caught");
-            if(scenario.equals("third") || scenario.equals("offAxis")) {
+            if(scenario.equals("third") || scenario.equals("iris") || scenario.equals("offAxis")) {
                 check((int)get(drawer,"nativeCalls")==1 && !events.contains("save"),"Unsupported camera delegates ordinary draw");
                 continue;
             }
             check((int)get(drawer,"nativeCalls")==0,"Native whole-frame method never replayed");
             check(projection.equals(before),"Scene projection restored on "+scenario);
             check((boolean)staticGet(world,"handFromPlayer") && (boolean)staticGet(world,"cullFromPlayer")
-                    && ((Matrix4f)staticGet(world,"handView")).equals(new Matrix4f()),"Borrowed native hand/culling state restored");
+                    && (boolean)staticGet(world,"freeCamera") && ((Matrix4f)staticGet(world,"handView")).equals(new Matrix4f()),"Borrowed native hand/culling state restored");
             check(count(events,"restore")==1 && (int)staticGet(probe,"bound")==91,"Outer failure handler also restores caller output: "+scenario);
             check(count(events,"texturesRelease")== (scenario.equals("skipped")?0:1),"Acquired model textures released once even when prepare/eye fails: "+scenario);
             check(count(events,"retirement")==1,"Retirement once at pair end");
             check(count(events,"drawersRelease")== (scenario.equals("recycle")?0:1),"Never release a recycled frame's drawers");
             check(!events.contains("jitter") && !events.contains("resolve") && !events.contains("remember")
-                    && !events.contains("passes") && !events.contains("packHistory") && !events.contains("indirect"),"Diagnostic history/effects suppressed");
+                    && !events.contains("iris") && !events.contains("passes") && !events.contains("packHistory") && !events.contains("indirect"),"Diagnostic history/effects suppressed");
             if(!scenario.equals("skipped")) check(count(events,"stream")==1 && count(events,"models")==1 && count(events,"uniforms")==1,"Shared preparation once");
             if(scenario.equals("success")) {
                 check(caught==null,"Successful synthetic pair: "+caught);
                 check(count(events,"world")==2 && count(events,"frustum")==2 && count(events,"mask")==2,"Per-eye world/frusta/masks twice");
-                for(String name:List.of("shells","cells","bandLight","cellLight","trees","clock","developer","pack","floors","ground","uploads","meshes","shadows","weatherMap","mousePick","farShadows"))
+                for(String name:List.of("shells","cells","bandLight","cellLight","trees","clock","developer","pack","floors","ground","uploads","meshes","shadows","weatherMap","mousePick","farShadows","lateLook","cameraEye","latency"))
                     check(count(events,name)==1,"Shared native stage once: "+name);
                 check(count(events,"uniformBind")==2,"Per-eye uniform texture rebinding");
                 check(views.size()==2 && !views.get(0).equals(views.get(1)),"Distinct eye cameras reach native begin");
+                var eye=new org.joml.Vector3f();hands.get(0).origin(eye);
+                check(eye.distance(new org.joml.Vector3f(3-(float)Math.cos(.6)*.32f,2,4-(float)Math.sin(.6)*.32f))<1e-5f,"Late yaw and native lean reach centered camera");
                 check(hands.size()==2 && hands.get(0).equals(hands.get(1)),"Native hand/flashlight camera stays centered for both eyes");
                 check(events.indexOf("copy1")<events.indexOf("texturesRelease") && events.indexOf("restore")<events.indexOf("publish"),"Final copy, cleanup, restore, publish ordering");
             } else if(scenario.equals("skipped")) check(caught==null && !events.contains("publish") && !events.contains("world"),"Native begin false skips both eyes and still restores state");

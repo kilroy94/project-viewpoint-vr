@@ -51,6 +51,7 @@ CONTRACTS = [
         "viewpoint/render/Retirement.drawn:(J)V"]),
     ("viewpoint.SceneDrawer", "public void postRender();", "()V", [
         "viewpoint/models/Characters.release:(Lviewpoint/core/Frame;)V",
+        "viewpoint/models/Corpses.release:(Lviewpoint/core/Frame;)V",
         "viewpoint/models/Models.release:(Lviewpoint/core/Frame;)V"]),
     ("viewpoint.render.WorldRenderer", "public static boolean begin(viewpoint.render.SceneData, org.joml.Matrix4f, float, float, float);",
      "(Lviewpoint/render/SceneData;Lorg/joml/Matrix4f;FFF)Z", [
@@ -60,16 +61,16 @@ CONTRACTS = [
         "viewpoint/render/Meshes.prepare:(Lviewpoint/render/SceneData;)V",
         "viewpoint/render/ModelPass.prepare:(Lviewpoint/render/SceneData;)V", "drawWorld:()V"]),
     ("viewpoint.render.WorldRenderer", "private static void drawWorld();", "()V", [
-        "viewpoint/render/FarPass.prepare:(Lviewpoint/render/FrameContext;)V",
+        "viewpoint/render/FarPass.prepare:(Lviewpoint/render/FrameContext;Z)V",
         "viewpoint/render/ShadowPass.draw:(Lviewpoint/render/FrameContext;)V",
         "viewpoint/render/ModelPass.gbuffer:(Lviewpoint/render/FrameContext;)V",
         "viewpoint/render/FarPass.gbuffer:(Lviewpoint/render/FrameContext;)V"]),
-    ("viewpoint.render.WorldRenderer", "public static void finish(viewpoint.render.SceneData);",
-     "(Lviewpoint/render/SceneData;)V", [
+    ("viewpoint.render.WorldRenderer", "private static void passes();",
+     "()V", [
         "viewpoint/render/TemporalPass.resolve:(Lviewpoint/render/FrameContext;)I",
         "viewpoint/render/TemporalPass.remember:(Lviewpoint/render/FrameContext;)V",
-        "viewpoint/render/TemporalPass.present:(Lviewpoint/render/FrameContext;IF)V",
-        "viewpoint/render/ModelPass.endFrame:()V"]),
+        "viewpoint/render/TemporalPass.present:(Lviewpoint/render/FrameContext;IF)V"]),
+    ("viewpoint.render.WorldRenderer", "public static void finish(viewpoint.render.SceneData);", "(Lviewpoint/render/SceneData;)V", ["passes:()V", "viewpoint/render/ModelPass.endFrame:()V"]),
 ]
 
 

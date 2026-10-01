@@ -1,17 +1,21 @@
-# Project Viewpoint VR 0.6.0 - headset UI
+# Project Viewpoint VR 0.6.1 - headset UI
 
 This experimental build implements continuous desktop stereo, OpenXR headset output, tracked head rotation/translation, and recentering. Version 0.4.1 produced two complete in-game stereo captures inspected on 2026-09-30. The user has since confirmed continuous desktop and null-headset tests without issues. Physical-headset testing is deferred. The new UI capture/composition still needs its first in-game test.
 
-**Compatibility:** this package requires the pinned Viewpoint **0.1.3** JAR. The installed **0.1.5a-hotfix** Workshop update is unsupported and rejected. Compatibility with that update is deferred by request; do not bypass the hash check or replace Workshop files to force this package to load.
+**Compatibility:** this package targets Viewpoint **0.1.5a-hotfix**, the installed Workshop update audited for this build. It replaces support for 0.1.3. Future updates must be audited before their binaries are accepted; do not bypass the hash check.
 
 ## Install
 
-1. Close Project Zomboid. Extract `ProjectViewpointVR-0.6.0.zip` into `%USERPROFILE%\Zomboid\mods`, replacing the previous ProjectViewpointVR files. The descriptor is `ProjectViewpointVR\42\mod.info`.
-2. Use Zomboid **42.21.0**, Viewpoint **0.1.3**, and ZombieBuddy **2.3.2** (original pinned JAR or audited B42.21 temporary fix). Exact binary checks remain mandatory. Approve the updated Java JAR if ZombieBuddy prompts.
+1. Close Project Zomboid. Extract `ProjectViewpointVR-0.6.1.zip` into `%USERPROFILE%\Zomboid\mods`, replacing the previous ProjectViewpointVR files. The descriptor is `ProjectViewpointVR\42\mod.info`.
+2. Use Zomboid **42.21.0**, Viewpoint **0.1.5a-hotfix**, and ZombieBuddy **2.3.2** (original pinned JAR or audited B42.21 temporary fix). Exact binary checks remain mandatory. Approve the updated Java JAR if ZombieBuddy prompts.
 3. Enable those mods in a disposable single-player save. For an existing save, use **Load > select the save > Choose Mods** and explicitly enable **Project Viewpoint VR - Desktop + OpenXR [Java]** there; enabling it only at the main menu does not enable it for that save. Disable PZ3D and the old PZ3D VR mod for this save. Enter Viewpoint first person, on foot. Viewpoint's inspected default toggle is **O**; use your established control if different.
 4. The **Project Viewpoint VR** buttons appear near the upper left. Use Viewpoint's **middle mouse button** to free/capture the cursor when you need to click them. Settings are session-only; startup mode is always Off.
 
 If the buttons are missing, first check the save's own mod list. In the observed case, the Java startup message appeared at the main menu but the mod was absent from the save, so the Lua controls did not load. After changing the save's mod selection, restart the game. Pause/Break alone only turns a mode Off and has no visible effect when already Off.
+
+## Updated-version regression
+
+Before testing the UI, repeat a short desktop-stereo and null-headset run on this version. Check mouse turning, camera lean, near/far scenery and corpses while turning; confirm Off restores ordinary rendering. Open Viewpoint settings and, if shown, its new setup wizard. Both use the same captured ImGui path. Existing Viewpoint keybindings are now customizable; use your configured controls. No default Pause/Break assignment was found in the audited new Viewpoint key declarations, but do not assign it yourself to a second action.
 
 ## Desktop test first
 
@@ -30,10 +34,10 @@ Click **Off**, or press **Pause/Break alone**, to restore ordinary rendering. To
 
 ## UI test with the null headset
 
-After compatibility allows the build to load, select **XR fixed** or **XR tracked**. UI capture is automatic in both XR modes. No new hotkeys are assigned.
+Select **XR fixed** or **XR tracked**. UI capture is automatic in both XR modes. No new hotkeys are assigned.
 
 1. Open inventory, a context menu and the pause menu. Confirm readable text, transparent surroundings, correct orientation, and matching desktop/headset contents.
-2. Open Viewpoint's loot panel and performance overlay, then its settings window using your existing controls (Delete is the inspected settings default for 0.1.3). Confirm each appears above the game UI.
+2. Open Viewpoint's loot panel and performance overlay, then its settings window using your existing controls (Delete is the inspected settings default for 0.1.5a-hotfix). Confirm each appears above the game UI.
 3. Release the mouse with Viewpoint's middle mouse control. A white cross in a black square marks the desktop mouse position on the headset panel. Click and scroll in both native and Viewpoint windows; confirm actions happen once.
 4. Close the windows and confirm their images disappear. Resize the game window, switch Off and back to XR, and check the panel redraws without stale text or desktop changes. Compare desktop appearance with XR Off.
 5. Check the log for increasing `UI panels submitted=...` alongside `Projection pairs submitted=...`. Report any `[Project Viewpoint VR UI] Capture disabled` message.
@@ -43,7 +47,7 @@ UI comes from the previous completed desktop frame. Menus may therefore trail by
 ## Scope and known limits
 
 - UI is displayed as one transparent panel 1.5 meters ahead of the head, using desktop pixel layout and aspect ratio. The panel is at most 2 meters wide. Mouse/keyboard input remains native; there is no controller pointer or tracked-hand input. Native keyboard/mouse gameplay and picking still use the native player camera, not an independent headset aim ray.
-- First person, on foot, single player only. Third person/freecam/vehicles suspend the pair path; multiplayer is rejected.
+- First person, on foot, single player, using native Viewpoint shaders. Switch Off before changing shader packs. Selecting an Iris/Minecraft shader pack suspends stereo and leaves normal Viewpoint rendering active; choose a native Viewpoint shader to resume. Third person/freecam/vehicles suspend the pair path; multiplayer is rejected.
 - Eye targets retain the 0.05/400 clipping planes. Desktop eye images are capped at 1280 pixels on their longest side; XR source targets use the runtime's recommended dimensions capped at 2048, then scale to each runtime swapchain.
 - Each headset eye is rendered with a symmetric frustum containing its requested asymmetric FOV, then cropped during GPU submission. This preserves the native symmetric sky/depth reconstruction. Crop boundaries are rounded to source pixels; edge error is below one source pixel.
 - Continuous modes broaden the desktop-facing chunk and character filters and bypass room hiding. This retains geometry for independent head turns, but costs CPU/GPU time and does not expand the game's loaded world or remove all game visibility rules. The broadening expires if rendering stops and turns off with the mode.

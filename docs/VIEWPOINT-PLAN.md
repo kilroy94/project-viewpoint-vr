@@ -4,9 +4,9 @@
 
 ## Evidence and scope
 
-The installed Viewpoint 0.1.3 and Zomboid 42.21.0 JARs were inspected with JDK bytecode tools and Vineflower. Exact SHA-256 pins are in [pins.json](../viewpoint/pins.json). Decompiled implementations are evidence only, not source to copy into this project. Generated disassembly and proprietary copies are local ignored build inputs. No game/mod entry point was run. Findings below describe the pinned binary, not stable public APIs.
+The installed Viewpoint 0.1.5a-hotfix and Zomboid 42.21.0 JARs were inspected with JDK bytecode tools and Vineflower. Exact SHA-256 pins are in [pins.json](../viewpoint/pins.json). Decompiled implementations are evidence only, not source to copy into this project. Generated disassembly and proprietary copies are local ignored build inputs. No game/mod entry point was run. Findings below describe the pinned binary, not stable public APIs.
 
-The 0.4.1 one-shot diagnostic produced two complete in-game stereo captures during the user's 2026-09-30 test. Version 0.5.0 implements continuous desktop stereo, OpenXR submission, independent head tracking and recentering. The user subsequently confirmed continuous desktop and null-headset tests without issues; physical-headset testing is deferred. Version 0.6.0 implements UI for the pinned 0.1.3 binary, with its live UI test pending. See the current [test guide](../viewpoint/TESTING.md).
+The 0.4.1 one-shot diagnostic produced two complete in-game stereo captures during the user's 2026-09-30 test. Version 0.5.0 implements continuous desktop stereo, OpenXR submission, independent head tracking and recentering. The user subsequently confirmed continuous desktop and null-headset tests without issues; physical-headset testing is deferred. Version 0.6.1 ports the UI/stereo implementation to 0.1.5a-hotfix; updated-version live validation is pending. Maintain the latest Viewpoint target only. See the current [test guide](../viewpoint/TESTING.md).
 
 ## The boundary that must be implemented
 
@@ -20,7 +20,7 @@ The 0.4.1 one-shot diagnostic produced two complete in-game stereo captures duri
 | `WorldRenderer.finish` | Resolves/remembers temporal history, presents to caller output and releases model texture resources. Delay pair-owned cleanup; prevent left/right history contamination. |
 | `SceneDrawer.postRender` | Releases captured character/model resources. Leave ownership with the normal frame lifecycle; add failure-path tests before interception. |
 
-The executable checker anchors five methods and 21 invocations in this contract. Lexical call order is deliberately distinguished from runtime/control-flow proof. A future transformer must also validate loaded bytes, classloader ownership and modifiability; offline acceptance is not runtime authorization to transform unknown classes.
+The executable checker anchors six methods and 23 invocations in this contract. Lexical call order is deliberately distinguished from runtime/control-flow proof. A future transformer must also validate loaded bytes, classloader ownership and modifiability; offline acceptance is not runtime authorization to transform unknown classes.
 
 ## Stereo correctness work before an in-game package
 
@@ -42,4 +42,4 @@ Arm IK/calibration math may carry over later. Viewpoint uses packed 12-float bon
 
 ## Acceptance sequence
 
-Offline contract/camera tests, native pair lifecycle, real GL capture and loader activation are complete. The first in-game capture milestone is confirmed. Continuous desktop -> fixed XR -> tracked XR/recenter are now implemented in one package at the user's request, with separate controls for live isolation. The user confirmed desktop and null-headset tests and authorized proceeding with UI while physical-headset testing waits. The installed 0.1.5a-hotfix update changes the renderer and UI; the user explicitly chose to finish this UI milestone for 0.1.3 and handle compatibility separately.
+Offline contract/camera tests, native pair lifecycle, real GL capture and loader activation are complete. The first in-game capture milestone is confirmed. Continuous desktop -> fixed XR -> tracked XR/recenter are now implemented in one package at the user's request, with separate controls for live isolation. The user confirmed desktop and null-headset tests and authorized proceeding with UI while physical-headset testing waits. The user now requires tracking the latest available Viewpoint without maintaining old-version compatibility. Version 0.6.1 replaces the 0.1.3 target with 0.1.5a-hotfix; future upstream changes require an audit of affected contracts.
