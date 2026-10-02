@@ -68,6 +68,7 @@ public final class Main {
     }
     public static void uiBegin(){UiBridge.marker(0,true);}
     public static void uiEnd(){UiBridge.marker(0,false);}
+    public static String turning(double mode,double angle,double speed){return viewpointvr.input.InputBridge.turning((int)mode,(int)angle,(int)speed);}
     public static String controllers(double value){viewpointvr.input.InputBridge.configure((int)value);return "Controllers: "+(int)value;}
     public static String mode(String name){return runtime==null?status:runtime.mode(name);}
     public static String recenter(){return runtime==null?status:runtime.recenter();}

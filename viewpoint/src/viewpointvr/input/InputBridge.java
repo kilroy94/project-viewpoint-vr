@@ -7,6 +7,10 @@ public final class InputBridge {
  public static volatile ControllerState state=ControllerState.EMPTY;
  public static volatile ControllerLogic.Output output=ControllerLogic.Output.NONE;
  public static volatile int mode;
+ public static volatile TurnSettings turning=TurnSettings.DEFAULT;
+ public static String turning(int mode,int angle,int speed){
+  var next=new TurnSettings(mode,angle,speed);turning=next;epoch.incrementAndGet();output=ControllerLogic.Output.NONE;return next.label();
+ }
  public static volatile float aspect=16f/9;
  private static volatile long worldUntil,panelUntil;
  private static final java.util.concurrent.atomic.AtomicLong epoch=new java.util.concurrent.atomic.AtomicLong();
@@ -14,7 +18,7 @@ public final class InputBridge {
  public static void trackingLost(){epoch.incrementAndGet();output=ControllerLogic.Output.NONE;}
  public static void panel(float value){aspect=value;panelUntil=System.nanoTime()+2_000_000_000L;}
  public static boolean panelReady(){return panelUntil!=0&&System.nanoTime()-panelUntil<0;}
- public static String status(){var s=state;boolean valid=s.fresh(System.nanoTime());return mode==0?"Controllers Off":(mode==1?"UI pointer":"Pointer + move/turn")+" | tracking L="+(valid&&s.left().tracked())+" R="+(valid&&s.right().tracked());}
+ public static String status(){var s=state;boolean valid=s.fresh(System.nanoTime());return mode==0?"Controllers Off":(mode==1?"UI pointer":"Pointer + move/turn")+" | "+turning.label()+" | tracking L="+(valid&&s.left().tracked())+" R="+(valid&&s.right().tracked());}
  public static void install(Native value){adapter=value;}
  public static void configure(int value){epoch.incrementAndGet();mode=value>=0&&value<=2?value:0;output=ControllerLogic.Output.NONE;}
  public static void world(boolean tracked){worldUntil=tracked?System.nanoTime()+250_000_000L:0;}

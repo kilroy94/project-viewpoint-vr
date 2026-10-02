@@ -1,5 +1,15 @@
 # Viewpoint baseline validation
 
+## Turning options restored: 0.7.1
+
+Restores the preserved mod's Off/Snap/Smooth selection, 15/30/45/60/90-degree snap choices, and 30?240-degree/second smooth speed choices in 15-degree steps. These are three dropdowns in the existing on-screen controls. Defaults retain 30-degree Snap, with 90 degrees/second selected for Smooth. Settings remain session-only. Turning Off preserves walking and pointer use.
+
+Reused the project's authored TurnFilter, adapting ownership to Viewpoint's input tick. Smooth rotation is proportional to stick deflection and elapsed time, caps each update at 50 ms and disarms after a gap over 250 ms. Vertical-dominant input is rejected. Settings changes, tracking/focus loss and mode/menu transitions require neutral rearming.
+
+Full Build.ps1 passed in run `c6d2c53939cf44b19d5a55505c58831e`, including 58 new turning checks and all prior controller, camera, lifecycle, copied-class initialization audits, Lua compilation and standalone GPU checks. Turning coverage includes both directions at every snap angle, smooth rates at 30/60/120 Hz, proportional input, deadzone, stall handling, tracking recovery, settings validation and held-stick setting changes. No game/mod entry point or SteamVR was launched. Physical-controller validation remains pending.
+
+Package: `dist/ProjectViewpointVR-0.7.1.zip`, 82 production classes. ZIP SHA-256: `c7593f066cdabe0808bcc6186dff62cc8bd5bb6cbb0b7730ec3e09e00fea0f5e`.
+
 ## Controller input: 0.7.0
 
 The user confirmed the 0.6.1 updated renderer and UI work, then authorized controller acquisition, UI pointing/clicking/scrolling and optional movement/turning. Physical-headset/controller testing remains deferred. The supported Viewpoint binary remains 0.1.5a-hotfix; its installed SHA-256 was rechecked unchanged for this work.

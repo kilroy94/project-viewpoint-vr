@@ -1,4 +1,4 @@
-# Project Viewpoint VR 0.7.0 - controller input
+# Project Viewpoint VR 0.7.1 - controller input
 
 This experimental build implements continuous desktop stereo, OpenXR headset output, tracked head rotation/translation, and recentering. Version 0.4.1 produced two complete in-game stereo captures inspected on 2026-09-30. The user has since confirmed continuous desktop and null-headset tests without issues. Physical-headset testing is deferred. The user also confirmed the 0.6.1 renderer update and UI work. Controller input is new and requires live validation.
 
@@ -6,7 +6,7 @@ This experimental build implements continuous desktop stereo, OpenXR headset out
 
 ## Install
 
-1. Close Project Zomboid. Extract `ProjectViewpointVR-0.7.0.zip` into `%USERPROFILE%\Zomboid\mods`, replacing the previous ProjectViewpointVR files. The descriptor is `ProjectViewpointVR\42\mod.info`.
+1. Close Project Zomboid. Extract `ProjectViewpointVR-0.7.1.zip` into `%USERPROFILE%\Zomboid\mods`, replacing the previous ProjectViewpointVR files. The descriptor is `ProjectViewpointVR\42\mod.info`.
 2. Use Zomboid **42.21.0**, Viewpoint **0.1.5a-hotfix**, and ZombieBuddy **2.3.2** (original pinned JAR or audited B42.21 temporary fix). Exact binary checks remain mandatory. Approve the updated Java JAR if ZombieBuddy prompts.
 3. Enable those mods in a disposable single-player save. For an existing save, use **Load > select the save > Choose Mods** and explicitly enable **Project Viewpoint VR - Desktop + OpenXR [Java]** there; enabling it only at the main menu does not enable it for that save. Disable PZ3D and the old PZ3D VR mod for this save. Enter Viewpoint first person, on foot. Viewpoint's inspected default toggle is **O**; use your established control if different.
 4. The **Project Viewpoint VR** buttons appear near the upper left. Use Viewpoint's **middle mouse button** to free/capture the cursor when you need to click them. Settings are session-only; startup mode is always Off.
@@ -48,7 +48,7 @@ UI comes from the previous completed desktop frame. Menus may therefore trail by
 
 The null headset does not provide controller poses. Leave **Controllers Off** for normal null-headset regression; an enabled input mode should report left/right tracking false and produce no clicks or movement. No new keyboard hotkeys are assigned.
 
-When controllers become available, follow [INPUT.md](INPUT.md): start with **UI pointer**, then test **Pointer + move/turn** in XR tracked. First release all buttons/sticks. Release Viewpoint's cursor with middle mouse or the mapped right-controller menu button. Aim at the panel, pull the right trigger to click, and move the right stick vertically to scroll. Verify clicks and scrolling in both inventory and Viewpoint settings. Test tracking/focus loss while holding a trigger and confirm release without a repeated click on recovery. Only then test walking and snap turning with the cursor captured. Off/Pause restores ordinary rendering; **Controllers Off** disables controller actions separately.
+When controllers become available, follow [INPUT.md](INPUT.md): start with **UI pointer**, then test **Pointer + move/turn** in XR tracked. First release all buttons/sticks. Release Viewpoint's cursor with middle mouse or the mapped right-controller menu button. Aim at the panel, pull the right trigger to click, and move the right stick vertically to scroll. Verify clicks and scrolling in both inventory and Viewpoint settings. Test tracking/focus loss while holding a trigger and confirm release without a repeated click on recovery. Only then test walking and turning with the cursor captured. The new bottom-row dropdowns select Off/Snap/Smooth, snap angle (15/30/45/60/90 degrees) and smooth speed (30?240 degrees/second). Center the stick after each setting change; confirm one snap per deflection and continuous turning only in Smooth. Off/Pause restores ordinary rendering; **Controllers Off** disables controller actions separately.
 
 ## Scope and known limits
 

@@ -5,15 +5,21 @@ public final class ControllerLogic {
   public static final Output NONE=new Output(null,false,0,0,0,0,false);
  }
  private int previousMode=-1,previousContext=-1;
- private boolean clickArmed,moveArmed,turnArmed,menuArmed,scrollArmed,held;
+ private boolean clickArmed,moveArmed,menuArmed,scrollArmed,held;
  private long lastScroll;
- public void reset(){clickArmed=moveArmed=turnArmed=menuArmed=scrollArmed=held=false;previousContext=-1;lastScroll=0;}
+ private final TurnFilter turning=new TurnFilter();
+ private TurnSettings turnSettings=TurnSettings.DEFAULT;
+ public void reset(){turning.reset();clickArmed=moveArmed=menuArmed=scrollArmed=held=false;previousContext=-1;lastScroll=0;}
  public Output step(ControllerState state,long now,int mode,boolean released,boolean gameplay,float aspect){
+  return step(state,now,mode,released,gameplay,aspect,TurnSettings.DEFAULT);
+ }
+ public Output step(ControllerState state,long now,int mode,boolean released,boolean gameplay,float aspect,TurnSettings settings){
+  if(!settings.equals(turnSettings)){reset();turnSettings=settings;}
   int context=(released?1:0)|(gameplay?2:0);
   if(mode!=previousMode||context!=previousContext){reset();previousMode=mode;previousContext=context;}
   if(mode==0||!state.fresh(now)){reset();return Output.NONE;}
   var right=state.right();var left=state.left();
-  if(!right.tracked()){clickArmed=turnArmed=menuArmed=scrollArmed=held=false;}
+  if(!right.tracked()){turning.reset();clickArmed=menuArmed=scrollArmed=held=false;}
   if(!left.tracked())moveArmed=false;
   boolean menu=false;
   if(right.tracked()){
@@ -36,11 +42,8 @@ public final class ControllerLogic {
     if(length<.2f)moveArmed=true;
     if(moveArmed&&length>.2f){float scale=Math.min(1,(length-.2f)/.8f)/length;mx=left.x()*scale;my=left.y()*scale;}
    }
-   if(right.tracked()){
-    if(Math.abs(right.x())<.25f)turnArmed=true;
-    if(turnArmed&&Math.abs(right.x())>.7f){turn=Math.copySign((float)Math.toRadians(30),right.x());turnArmed=false;}
-   }
-  }else{moveArmed=turnArmed=false;}
+   turn=turning.update(now,right.x(),right.y(),right.tracked(),settings.mode(),settings.angle(),settings.speed());
+  }else{moveArmed=false;turning.reset();}
   return new Output(hit,down,scroll,mx,my,turn,menu);
  }
 }

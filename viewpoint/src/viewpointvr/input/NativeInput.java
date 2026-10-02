@@ -35,7 +35,7 @@ public final class NativeInput implements InputBridge.Native {
   if(previousRoute!=route)logic.reset();
   long now=System.nanoTime();
   var next=logic.step(valid?InputBridge.state:ControllerState.EMPTY,now,InputBridge.mode,released,
-    valid&&InputBridge.gameplay()&&!modal&&!menu&&!zombie.GameTime.isGamePaused(),InputBridge.aspect);
+    valid&&InputBridge.gameplay()&&!modal&&!menu&&!zombie.GameTime.isGamePaused(),InputBridge.aspect,InputBridge.turning);
   if(next.menu()&&valid&&!modal&&!menu&&!zombie.GameTime.isGamePaused()){cursorMode.setBoolean(null,!cursorMode.getBoolean(null));logic.reset();next=ControllerLogic.Output.NONE;}
   InputBridge.output=next;
   var point=next.hit()!=null?next.hit():mouse.held()?lastHit:null;

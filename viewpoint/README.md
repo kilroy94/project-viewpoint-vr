@@ -1,4 +1,4 @@
-# Project Viewpoint VR runtime 0.7.0
+# Project Viewpoint VR runtime 0.7.1
 
 Read [TESTING.md](TESTING.md) for installation, mode controls, runtime setup, scale/recenter and limitations. The user's two 0.4.1 captures confirm the one-shot in-game path. The user also confirmed continuous desktop and null-headset tests. The user confirmed the 0.6.1 renderer update and UI work. Physical-headset testing is deferred; new controller live validation is pending. This build targets only Viewpoint 0.1.5a-hotfix. Development tracks the latest available renderer; previous Viewpoint versions are not retained as compatibility targets.
 

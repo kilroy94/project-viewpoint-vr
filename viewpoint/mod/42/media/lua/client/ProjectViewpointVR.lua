@@ -1,7 +1,9 @@
 require "ISUI/ISPanel"
 require "ISUI/ISButton"
 require "ISUI/ISTextEntryBox"
+require "ISUI/ISComboBox"
 
+local turnSelection = {2,2,5}
 local panel = nil
 local previous = nil
 local function drawStatus()
@@ -18,7 +20,7 @@ local function drawStatus()
 end
 local function controls()
     if panel then panel:removeFromUIManager() end
-    panel=ISPanel:new(16,112,410,134)
+    panel=ISPanel:new(16,112,410,166)
     panel:initialise()
     panel.moveWithMouse=true
     panel:addToUIManager()
@@ -45,6 +47,29 @@ local function controls()
         local button=ISButton:new(6+(index-1)*133,102,129,24,mode[1],nil,function() if ProjectViewpointVR then ProjectViewpointVR.controllers(value) end end)
         button:initialise();panel:addChild(button)
     end
+    local angles={15,30,45,60,90}
+    local turnBoxes={}
+    local function turningChanged()
+        for index,box in ipairs(turnBoxes) do turnSelection[index]=box.selected end
+        if ProjectViewpointVR then
+            ProjectViewpointVR.turning(turnSelection[1]-1,angles[turnSelection[2]],30+(turnSelection[3]-1)*15)
+        end
+    end
+    for index=1,3 do
+        local box=ISComboBox:new(6+(index-1)*133,136,129,24,nil,turningChanged)
+        box:initialise()
+        if index==1 then
+            for _,label in ipairs({"Turning: Off","Turning: Snap","Turning: Smooth"}) do box:addOption(label) end
+        elseif index==2 then
+            for _,angle in ipairs(angles) do box:addOption("Snap: "..angle.." deg") end
+        else
+            for speed=30,240,15 do box:addOption("Smooth: "..speed.." deg/s") end
+        end
+        box.selected=turnSelection[index]
+        turnBoxes[index]=box
+        panel:addChild(box)
+    end
+
 end
 Events.OnGameStart.Add(controls)
 Events.OnPreUIDraw.Add(function() if ProjectViewpointVR then ProjectViewpointVR.uiBegin() end end)
