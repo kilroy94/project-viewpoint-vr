@@ -6,7 +6,7 @@
 
 The installed Viewpoint 0.1.5a-hotfix and Zomboid 42.21.0 JARs were inspected with JDK bytecode tools and Vineflower. Exact SHA-256 pins are in [pins.json](../viewpoint/pins.json). Decompiled implementations are evidence only, not source to copy into this project. Generated disassembly and proprietary copies are local ignored build inputs. No game/mod entry point was run. Findings below describe the pinned binary, not stable public APIs.
 
-The 0.4.1 one-shot diagnostic produced two complete in-game stereo captures during the user's 2026-09-30 test. Version 0.5.0 implements continuous desktop stereo, OpenXR submission, independent head tracking and recentering. The user subsequently confirmed continuous desktop and null-headset tests without issues; physical-headset testing is deferred. Version 0.6.1 ports the UI/stereo implementation to 0.1.5a-hotfix; updated-version live validation is pending. Maintain the latest Viewpoint target only. See the current [test guide](../viewpoint/TESTING.md).
+The 0.4.1 one-shot diagnostic produced two complete in-game stereo captures during the user's 2026-09-30 test. Version 0.5.0 implements continuous desktop stereo, OpenXR submission, independent head tracking and recentering. The user subsequently confirmed continuous desktop and null-headset tests without issues; physical-headset testing is deferred. Version 0.6.1 ports the UI/stereo implementation to 0.1.5a-hotfix; the user subsequently confirmed the updated renderer and UI work. Maintain the latest Viewpoint target only. See the current [test guide](../viewpoint/TESTING.md).
 
 ## The boundary that must be implemented
 
@@ -43,3 +43,8 @@ Arm IK/calibration math may carry over later. Viewpoint uses packed 12-float bon
 ## Acceptance sequence
 
 Offline contract/camera tests, native pair lifecycle, real GL capture and loader activation are complete. The first in-game capture milestone is confirmed. Continuous desktop -> fixed XR -> tracked XR/recenter are now implemented in one package at the user's request, with separate controls for live isolation. The user confirmed desktop and null-headset tests and authorized proceeding with UI while physical-headset testing waits. The user now requires tracking the latest available Viewpoint without maintaining old-version compatibility. Version 0.6.1 replaces the 0.1.3 target with 0.1.5a-hotfix; future upstream changes require an audit of affected contracts.
+
+
+## Controller milestone 0.7.0
+
+OpenXR aim/grip acquisition, right-hand UI pointing/clicking/scrolling and optional left-stick walking/right-stick snap turning are implemented. These reuse acquisition patterns while adapting input at pinned Viewpoint call sites. The user authorized this next step after confirming the updated renderer and UI work. Simulation and standalone GL validation do not establish physical controller bindings, comfort or game-side interaction success. See [INPUT.md](../viewpoint/INPUT.md). Hand models, weapons and direct world interactions remain future work.

@@ -22,6 +22,18 @@ public final class UiTransform {
             public MethodVisitor visitMethod(int access,String method,String descriptor,String signature,String[] exceptions){
                 return new MethodVisitor(ASM9,super.visitMethod(access,method,descriptor,signature,exceptions)){
                     public void visitMethodInsn(int op,String owner,String called,String desc,boolean itf){
+                        if(name.equals(TARGETS.get(0))&&method.equals("mouseUpdated")&&op==INVOKESTATIC&&owner.equals("viewpoint/input/Controls")&&called.equals("pinMouse")&&desc.equals("()V")){
+                            super.visitLdcInsn(new Handle(H_INVOKESTATIC,owner,called,desc,false));
+                            super.visitMethodInsn(INVOKESTATIC,"viewpointvr/input/InputBridge","mouse","(Ljava/lang/invoke/MethodHandle;)V",false);hits[0]++;return;
+                        }
+                        if(name.equals(TARGETS.get(0))&&method.equals("inputMoveVector")&&op==INVOKESTATIC&&owner.equals("viewpoint/input/Controls")&&called.equals("moveVector")&&desc.equals("(Lzombie/characters/IsoPlayer;Lzombie/iso/Vector2;)V")){
+                            super.visitLdcInsn(new Handle(H_INVOKESTATIC,owner,called,desc,false));
+                            super.visitMethodInsn(INVOKESTATIC,"viewpointvr/input/InputBridge","move","(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/invoke/MethodHandle;)V",false);hits[0]++;return;
+                        }
+                        if(name.equals(TARGETS.get(1))&&method.equals("draw")&&op==INVOKESTATIC&&owner.equals(name)&&called.equals("input")&&desc.equals("()V")){
+                            super.visitLdcInsn(new Handle(H_INVOKESTATIC,owner,called,desc,false));
+                            super.visitMethodInsn(INVOKESTATIC,"viewpointvr/input/InputBridge","imgui","(Ljava/lang/invoke/MethodHandle;)V",false);hits[0]++;return;
+                        }
                         if(name.equals(TARGETS.get(0))&&op==INVOKESTATIC&&desc.equals("()V")){
                             if(method.equals("uiFrameEnding")&&called.equals("draw")&&(owner.equals("viewpoint/interact/LootPanel")||owner.equals("viewpoint/platform/PerformanceOverlay"))){
                                 super.visitLdcInsn(new Handle(H_INVOKESTATIC,owner,called,desc,false));
@@ -42,7 +54,7 @@ public final class UiTransform {
                 };
             }
         },0);
-        if(hits[0]!=(name.equals(TARGETS.get(0))?3:1))throw new IllegalArgumentException("UI anchor count: "+name+" = "+hits[0]);
+        if(hits[0]!=(name.equals(TARGETS.get(0))?5:2))throw new IllegalArgumentException("UI anchor count: "+name+" = "+hits[0]);
         return writer.toByteArray();
     }
 }

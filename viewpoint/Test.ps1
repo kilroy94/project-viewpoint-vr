@@ -37,7 +37,7 @@ $stageSources = Get-ChildItem "$PSScriptRoot/stage-fixtures" -Recurse -Filter *.
 & "$JavaHome/bin/javac.exe" -Xlint:all,-auxiliaryclass -cp $gameCopy -d $stageFixtures $stageSources
 if ($LASTEXITCODE -ne 0) { throw 'Native stage fixture compilation failed' }
 $testClasspath = "$tests;$classes;$gameCopy;$loaderCopy;$xrJar"
-foreach ($test in @('viewpointvr.UiBridgeTest','viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
+foreach ($test in @('viewpointvr.input.ControllerTest','viewpointvr.UiBridgeTest','viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
     & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath $test $fixtures
     if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
 }
@@ -74,7 +74,7 @@ $gpuPassed = $false
 if ($LwjglLibDirectory) {
     $glJars = @('lwjgl-3.4.1.jar','lwjgl-glfw-3.4.1.jar','lwjgl-opengl-3.4.1.jar','lwjgl-3.4.1-natives-windows.jar','lwjgl-glfw-3.4.1-natives-windows.jar','lwjgl-opengl-3.4.1-natives-windows.jar') | ForEach-Object { (Resolve-Path (Join-Path $LwjglLibDirectory $_)).Path }
     $glClasspath = $glJars -join ';'
-    & "$JavaHome/bin/java.exe" --enable-native-access=ALL-UNNAMED -ea -cp "$tests;$classes;$glClasspath" viewpointvr.diagnostic.GpuOutputTest "$run/gpu"
+    & "$JavaHome/bin/java.exe" --enable-native-access=ALL-UNNAMED -ea -cp "$tests;$classes;$glClasspath;$gameCopy" viewpointvr.diagnostic.GpuOutputTest "$run/gpu"
     if ($LASTEXITCODE -ne 0) { throw 'Standalone hidden OpenGL test failed' }
     $previousRuntime=$env:XR_RUNTIME_JSON
     try {

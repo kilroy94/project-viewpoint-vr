@@ -38,6 +38,7 @@ public final class Main {
             UiBridge.queue(action->zombie.core.SpriteRenderer.instance.drawGeneric(new zombie.core.textures.TextureDraw.GenericDrawer(){
                 @Override public void render(){action.run();}
             }));
+            viewpointvr.input.InputBridge.install(new viewpointvr.input.NativeInput(owner));
             runtime=new RuntimeDriver(new NativePipeline(access),captures,installed::ready,Main::stopKey,System::nanoTime);
             FrameBoundary.dispatcher(runtime);
             status=captures.status();
@@ -67,6 +68,7 @@ public final class Main {
     }
     public static void uiBegin(){UiBridge.marker(0,true);}
     public static void uiEnd(){UiBridge.marker(0,false);}
+    public static String controllers(double value){viewpointvr.input.InputBridge.configure((int)value);return "Controllers: "+(int)value;}
     public static String mode(String name){return runtime==null?status:runtime.mode(name);}
     public static String recenter(){return runtime==null?status:runtime.recenter();}
     public static String scale(double value){return runtime==null?status:runtime.scale(value);}
@@ -79,6 +81,6 @@ public final class Main {
     public static String requestCapture() { return captures==null?status:captures.request(); }
     public static String status() {
         if(installation!=null && !installation.ready()) return installation.failure()==null?status:"Disabled: "+installation.failure();
-        return runtime==null?status:runtime.status();
+        return runtime==null?status:runtime.status()+" | "+viewpointvr.input.InputBridge.status();
     }
 }

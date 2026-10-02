@@ -27,7 +27,7 @@ public final class Installation implements ClassFileTransformer,AutoCloseable {
         this.instrumentation=Objects.requireNonNull(instrumentation); this.loader=loader;
         entry=EntryTransform.fromPinnedJar(jar); stages=StageTransform.fromPinnedJar(jar);visibility=new VisibilityTransform(jar);ui=new UiTransform(jar);
         if(!instrumentation.isRetransformClassesSupported()) throw new IllegalStateException("Retransformation unavailable");
-        for(Class<?> hook:List.of(FrameBoundary.class,StageHooks.class,Visibility.class,UiBridge.class))
+        for(Class<?> hook:List.of(FrameBoundary.class,StageHooks.class,Visibility.class,UiBridge.class,viewpointvr.input.InputBridge.class))
             if(Class.forName(hook.getName(),false,loader)!=hook) throw new IllegalStateException("Hook not visible to native loader");
         for(int i=0;i<targets.length;i++) {
             targets[i]=Class.forName(TARGETS.get(i).replace('/','.'),false,loader);
@@ -36,6 +36,7 @@ public final class Installation implements ClassFileTransformer,AutoCloseable {
                 throw new IllegalStateException("Unsupported target loader/origin/modifiability: "+TARGETS.get(i));
         }
         new ViewpointBackend.Access(loader);
+        new viewpointvr.input.NativeInput(loader);
     }
     public static Installation install(Instrumentation instrumentation,ClassLoader loader,Path jar) throws Exception {
         Installation install=new Installation(instrumentation,loader,jar);

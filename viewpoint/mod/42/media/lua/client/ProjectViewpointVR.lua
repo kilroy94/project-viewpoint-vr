@@ -18,7 +18,7 @@ local function drawStatus()
 end
 local function controls()
     if panel then panel:removeFromUIManager() end
-    panel=ISPanel:new(16,112,410,102)
+    panel=ISPanel:new(16,112,410,134)
     panel:initialise()
     panel.moveWithMouse=true
     panel:addToUIManager()
@@ -39,6 +39,12 @@ local function controls()
         if value and ProjectViewpointVR then print("[Project Viewpoint VR] "..ProjectViewpointVR.scale(value)) end
     end)
     apply:initialise();panel:addChild(apply)
+    local inputModes={{"Controllers Off",0},{"UI pointer",1},{"Pointer + move/turn",2}}
+    for index,mode in ipairs(inputModes) do
+        local value=mode[2]
+        local button=ISButton:new(6+(index-1)*133,102,129,24,mode[1],nil,function() if ProjectViewpointVR then ProjectViewpointVR.controllers(value) end end)
+        button:initialise();panel:addChild(button)
+    end
 end
 Events.OnGameStart.Add(controls)
 Events.OnPreUIDraw.Add(function() if ProjectViewpointVR then ProjectViewpointVR.uiBegin() end end)

@@ -1,12 +1,12 @@
-# Project Viewpoint VR 0.6.1 - headset UI
+# Project Viewpoint VR 0.7.0 - controller input
 
-This experimental build implements continuous desktop stereo, OpenXR headset output, tracked head rotation/translation, and recentering. Version 0.4.1 produced two complete in-game stereo captures inspected on 2026-09-30. The user has since confirmed continuous desktop and null-headset tests without issues. Physical-headset testing is deferred. The new UI capture/composition still needs its first in-game test.
+This experimental build implements continuous desktop stereo, OpenXR headset output, tracked head rotation/translation, and recentering. Version 0.4.1 produced two complete in-game stereo captures inspected on 2026-09-30. The user has since confirmed continuous desktop and null-headset tests without issues. Physical-headset testing is deferred. The user also confirmed the 0.6.1 renderer update and UI work. Controller input is new and requires live validation.
 
 **Compatibility:** this package targets Viewpoint **0.1.5a-hotfix**, the installed Workshop update audited for this build. It replaces support for 0.1.3. Future updates must be audited before their binaries are accepted; do not bypass the hash check.
 
 ## Install
 
-1. Close Project Zomboid. Extract `ProjectViewpointVR-0.6.1.zip` into `%USERPROFILE%\Zomboid\mods`, replacing the previous ProjectViewpointVR files. The descriptor is `ProjectViewpointVR\42\mod.info`.
+1. Close Project Zomboid. Extract `ProjectViewpointVR-0.7.0.zip` into `%USERPROFILE%\Zomboid\mods`, replacing the previous ProjectViewpointVR files. The descriptor is `ProjectViewpointVR\42\mod.info`.
 2. Use Zomboid **42.21.0**, Viewpoint **0.1.5a-hotfix**, and ZombieBuddy **2.3.2** (original pinned JAR or audited B42.21 temporary fix). Exact binary checks remain mandatory. Approve the updated Java JAR if ZombieBuddy prompts.
 3. Enable those mods in a disposable single-player save. For an existing save, use **Load > select the save > Choose Mods** and explicitly enable **Project Viewpoint VR - Desktop + OpenXR [Java]** there; enabling it only at the main menu does not enable it for that save. Disable PZ3D and the old PZ3D VR mod for this save. Enter Viewpoint first person, on foot. Viewpoint's inspected default toggle is **O**; use your established control if different.
 4. The **Project Viewpoint VR** buttons appear near the upper left. Use Viewpoint's **middle mouse button** to free/capture the cursor when you need to click them. Settings are session-only; startup mode is always Off.
@@ -27,7 +27,7 @@ Click **Off**, or press **Pause/Break alone**, to restore ordinary rendering. To
 
 1. Start your normal headset connection and SteamVR yourself. The headset must be ready in the OpenXR runtime selected for the game process. This mod does not change global runtime settings, install drivers or configure SteamVR. A missing runtime is reported on the desktop and returns the mode to Off.
 2. **XR fixed** checks submission with a fixed visual camera and the runtime's eye separation/FOV. Inspect it briefly in the desktop mirror or headset without moving your head; this diagnostic mode intentionally does not make the camera follow head motion.
-3. Switch to **XR tracked** for head rotation and positional tracking. Face forward when tracking first becomes valid. Native mouse yaw remains your body-heading control; headset pitch/roll supply the visual pitch/roll in this mode. No controller input is installed.
+3. Switch to **XR tracked** for head rotation and positional tracking. Face forward when tracking first becomes valid. Native mouse yaw remains your body-heading control; headset pitch/roll supply the visual pitch/roll in this mode. Controller input starts Off; enable it separately as described below.
 4. Click **Recenter in 5 seconds**, face forward, and wait for the countdown. Recenter resets position and yaw, preserving gravity/horizon rather than cancelling your physical head tilt. Reference-space changes also request a fresh anchor. Tracking loss submits no world layer; it does not invent an eye pose.
 5. Check world scale while stationary. The default is **1 scene unit per meter**, not physically calibrated. If needed, switch Off, enter a value between **0.25 and 4** in the units/meter box, click Apply, and re-enter XR tracked. This scales physical head movement and runtime IPD together. It does not change world geometry.
 6. Test Off, then re-enter XR to verify cleanup/recreation. The runtime is pumped with UI-only frames when a completed UI panel exists, otherwise empty frames while Viewpoint has no eligible world draw. A stopped runtime returns Off before native scene work; a failure after drawing has begun disarms the new modes and may cause Viewpoint's own error handler to disable Viewpoint. Preserve the log and restart after a rendering failure.
@@ -44,9 +44,15 @@ Select **XR fixed** or **XR tracked**. UI capture is automatic in both XR modes.
 
 UI comes from the previous completed desktop frame. Menus may therefore trail by one frame. The vanilla layer is retained across UI-throttled frames and expires after two seconds without an update. The mouse marker hides when the cursor is captured or the window loses focus. Third-party UI outside the captured draw events, the operating-system cursor artwork and the game's developer ImGui interface are not included. Returning to the main menu turns XR Off.
 
+## Controller test (physical hardware deferred)
+
+The null headset does not provide controller poses. Leave **Controllers Off** for normal null-headset regression; an enabled input mode should report left/right tracking false and produce no clicks or movement. No new keyboard hotkeys are assigned.
+
+When controllers become available, follow [INPUT.md](INPUT.md): start with **UI pointer**, then test **Pointer + move/turn** in XR tracked. First release all buttons/sticks. Release Viewpoint's cursor with middle mouse or the mapped right-controller menu button. Aim at the panel, pull the right trigger to click, and move the right stick vertically to scroll. Verify clicks and scrolling in both inventory and Viewpoint settings. Test tracking/focus loss while holding a trigger and confirm release without a repeated click on recovery. Only then test walking and snap turning with the cursor captured. Off/Pause restores ordinary rendering; **Controllers Off** disables controller actions separately.
+
 ## Scope and known limits
 
-- UI is displayed as one transparent panel 1.5 meters ahead of the head, using desktop pixel layout and aspect ratio. The panel is at most 2 meters wide. Mouse/keyboard input remains native; there is no controller pointer or tracked-hand input. Native keyboard/mouse gameplay and picking still use the native player camera, not an independent headset aim ray.
+- UI is displayed as one transparent panel 1.5 meters ahead of the head, using desktop pixel layout and aspect ratio. The panel is at most 2 meters wide. Mouse/keyboard input remains available; the optional controller pointer targets this panel. Tracked hand models are not implemented. Native keyboard/mouse gameplay and picking still use the native player camera, not an independent headset aim ray.
 - First person, on foot, single player, using native Viewpoint shaders. Switch Off before changing shader packs. Selecting an Iris/Minecraft shader pack suspends stereo and leaves normal Viewpoint rendering active; choose a native Viewpoint shader to resume. Third person/freecam/vehicles suspend the pair path; multiplayer is rejected.
 - Eye targets retain the 0.05/400 clipping planes. Desktop eye images are capped at 1280 pixels on their longest side; XR source targets use the runtime's recommended dimensions capped at 2048, then scale to each runtime swapchain.
 - Each headset eye is rendered with a symmetric frustum containing its requested asymmetric FOV, then cropped during GPU submission. This preserves the native symmetric sky/depth reconstruction. Crop boundaries are rounded to source pixels; edge error is below one source pixel.

@@ -8,6 +8,7 @@ public final class NativePipeline implements RuntimeDriver.Pipeline {
     private LiveOutput output;
     private OpenXrSession xr;
     private UiCapture ui;
+    private RayRenderer ray;
     private XrCamera camera=new XrCamera(1);
     public NativePipeline(ViewpointBackend.Access access){this.access=access;}
     private LiveOutput output(){if(output==null)output=new LiveOutput(new LwjglGraphics());return output;}
@@ -22,22 +23,29 @@ public final class NativePipeline implements RuntimeDriver.Pipeline {
         boolean[] consumed={false};
         boolean rendered;
         try {rendered=xr.frame((head,views,sink)->{
+            viewpointvr.input.InputBridge.world(tracked);
             if(xr.consumeRecenter())camera.recenter();
             var out=output();float factor=Math.min(1f,2048f/Math.max(xr.width(),xr.height()));
-            out.begin(Math.max(1,Math.round(xr.width()*factor)),Math.max(1,Math.round(xr.height()*factor)),sink::copy);
+            out.begin(Math.max(1,Math.round(xr.width()*factor)),Math.max(1,Math.round(xr.height()*factor)),(eye,source,w,h)->{
+                try{var hit=viewpointvr.input.InputBridge.ray();if(hit!=null){if(ray==null)ray=new RayRenderer();ray.draw(source,w,h,hit,head,views.get(eye));}}
+                catch(Throwable error){viewpointvr.input.InputBridge.configure(0);System.err.println("[Project Viewpoint VR Input] Ray disabled: "+error);}
+                sink.copy(eye,source,w,h);
+            });
             consumed[0]=true;
             ViewpointBackend.cameras(access,out,(center,yaw,pitch,fov)->camera.eyes(head,views,center,yaw,pitch,tracked)).render(drawer,original);
             if(!out.published())throw new IllegalStateException("Native scene declined XR pair");
         },ui.image());
         }catch(Throwable error){if(!consumed[0])throw new RuntimeDriver.Unavailable(error);throw error;}
+        if(!rendered)viewpointvr.input.InputBridge.world(false);
         if(!consumed[0])original.draw();
         return rendered;
     }
-    public void idle() throws Throwable{if(xr!=null)xr.frame(null,ui.image());}
+    public void idle() throws Throwable{viewpointvr.input.InputBridge.world(false);if(xr!=null)xr.frame(null,ui.image());}
     public void close() throws Throwable {
         Throwable failure=null;
-        UiBridge.sink(null);
-        try{if(ui!=null)ui.close();}catch(Throwable error){failure=error;}finally{ui=null;}
+        UiBridge.sink(null);viewpointvr.input.InputBridge.clear();
+        try{if(ray!=null)ray.close();}catch(Throwable error){failure=error;}finally{ray=null;}
+        try{if(ui!=null)ui.close();}catch(Throwable error){failure=StageHooks.append(failure,error);}finally{ui=null;}
         try{if(xr!=null)xr.close();}catch(Throwable error){failure=StageHooks.append(failure,error);}finally{xr=null;}
         try{if(output!=null)output.close();}catch(Throwable error){failure=StageHooks.append(failure,error);}finally{output=null;}
         camera.recenter();if(failure!=null)throw failure;

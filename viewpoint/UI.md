@@ -1,4 +1,4 @@
-# Headset UI implementation (0.6.1)
+# Headset UI implementation (0.7.0)
 
 Target: exact-pinned Viewpoint 0.1.5a-hotfix and Zomboid 42.21.0. Decompiled classes informed call-site selection only; no dependency source or binaries are distributed. The current update preserves the audited UI capture call sites. The new setup wizard uses the same ImGuiFrame draw-data path as settings and is captured by that hook. Older Viewpoint binaries are no longer accepted.
 
@@ -15,7 +15,7 @@ Each native producer/input/event path executes once. `UiCapture` redirects draw 
 
 The next XR frame copies the previous completed UI FBO into a separately owned swapchain. A VIEW-space quad at z=-1.5 uses source-alpha blending with premultiplied color. Its size preserves desktop aspect ratio, capped at 2 meters wide and 1.3 meters high. The runtime must support two composition layers. Swapchain dimensions respect runtime limits; acquire/wait/copy/release uses the same protected GL copy path as world eyes. UI can be submitted without a world layer during idle frames, but returning to the main menu requests Off.
 
-Desktop keyboard/mouse interaction remains unchanged. A small high-contrast marker follows the normalized desktop cursor while it is released and focused; the operating-system cursor texture is not copied. No virtual clicks, ImGui input replay, controller ray, hand input or menu redesign is added. Third-party draw handlers outside the marked interval and developer ImGui are outside this milestone. UI lag is one completed desktop frame; headset comfort, gamma and readability are unverified.
+Desktop keyboard/mouse interaction remains unchanged. A small high-contrast marker follows the normalized desktop cursor while it is released and focused; the operating-system cursor texture is not copied. Version 0.7.0 adds opt-in controller ray/click/scroll through the native input callbacks; see [INPUT.md](INPUT.md). No UI event replay, hand models or menu redesign is added. Third-party draw handlers outside the marked interval and developer ImGui are outside this milestone. UI lag is one completed desktop frame; headset comfort, gamma and readability are unverified.
 
 ## Verification boundary
 

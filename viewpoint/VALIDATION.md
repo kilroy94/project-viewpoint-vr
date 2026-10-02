@@ -1,5 +1,15 @@
 # Viewpoint baseline validation
 
+## Controller input: 0.7.0
+
+The user confirmed the 0.6.1 updated renderer and UI work, then authorized controller acquisition, UI pointing/clicking/scrolling and optional movement/turning. Physical-headset/controller testing remains deferred. The supported Viewpoint binary remains 0.1.5a-hotfix; its installed SHA-256 was rechecked unchanged for this work.
+
+Full Build.ps1 passed in run `8bfcc303823a481e8882f7b0f64413c8`: four Python tests; 71 controller simulations; 256 stereo-camera, 485 lifecycle, 32 entry fixture, 21 XR camera/crop, 16 runtime, 239 transformed native-stage, 12 UI bridge, 38 capture/control, 17 copied-entry and 15 activation/rollback checks. Eleven copied targets verified/retransformed without game/mod initialization. Lua compiled with the bundled Kahlua compiler without execution. Hidden OpenGL passed 59 UI composition, 32 capture/output and 15 new controller-ray checks. The GPU ray test inspects actual beam pixels for both eye offsets and caller-state restoration. The real OpenXR loader rejected a deliberately missing process-local manifest with expected error -51; SteamVR was not launched.
+
+Controller simulation covers geometry, neutral rearming, click hysteresis, tracking/focus/stale-sample loss, scroll repetition, walk deadzones and diagonal limits, turn/menu edges, physical/virtual mouse history and native callback ordering/failure. Exact-pinned Hooks and ImGuiFrame adapters now include three input call sites while retaining the existing capture hooks. Native originals run once; movement modifies only an otherwise zero input vector. Controls default Off and send no OS input.
+
+Production classes were packaged as `dist/ProjectViewpointVR-0.7.0.zip` after the passing build; only the version descriptor and documentation changed afterward. The packaged JAR independently passed the missing-runtime smoke test using its bundled OpenXR bindings/loader. Archive inspection found no proprietary or project test classes; project source/documentation checks found no literal personal machine paths. ZIP SHA-256: `4dc7cb76dc07e3f4acfeb9e902c9c884ef2d9db6b60f2fed44ae273c946790a9`. This is a manual-test package, not a hardware-validated release. Live controller profile selection, ray orientation, vanilla/ImGui interaction, walking/turning direction and runtime/focus recovery remain unverified. No hand models, weapons or direct world interaction are claimed. See [INPUT.md](INPUT.md).
+
 ## Current Viewpoint port: 0.6.1
 
 The user requires following the latest available Viewpoint and explicitly rejects maintaining old-version compatibility. This supersedes the previous UI-stage deferral. The sole supported Viewpoint target is now **0.1.5a-hotfix**, SHA-256 `94fedda302ab6c17ba1b38495789e4c9781d52823fb8204214c85402e3cab41f`; 0.1.3 is no longer accepted. Game and ZombieBuddy pins are unchanged. Java transform pins now share BinaryPins.VIEWPOINT to avoid divergent hard-coded values.

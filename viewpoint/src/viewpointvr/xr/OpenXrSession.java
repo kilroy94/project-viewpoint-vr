@@ -19,6 +19,7 @@ public final class OpenXrSession implements AutoCloseable {
     private XrInstance instance;
     private XrSession session;
     private XrSpace local,head;
+    private XrControllers controllers;
     private long system,format,context,dc;
     private final Thread owner=Thread.currentThread();
     private final Eye[] eyes=new Eye[2];
@@ -75,6 +76,7 @@ public final class OpenXrSession implements AutoCloseable {
             session=new XrSession(pointer.get(0),instance);
             local=space(XR_REFERENCE_SPACE_TYPE_LOCAL,s); head=space(XR_REFERENCE_SPACE_TYPE_VIEW,s);
             createSwapchains(s); fbo=glGenFramebuffers();
+            try{controllers=new XrControllers(instance,session);}catch(RuntimeException error){log("Controllers unavailable; world rendering retained: "+error);}
             log("Session created on existing context; waiting for READY");
         }
     }
@@ -154,7 +156,7 @@ public final class OpenXrSession implements AutoCloseable {
         boolean rendered=false;
 
         try(MemoryStack s=stackPush()) {
-            events(s); if(ended) throw new IllegalStateException("Runtime session stopped or lost");
+            events(s); if(!running)viewpointvr.input.InputBridge.clear(); if(ended) throw new IllegalStateException("Runtime session stopped or lost");
             if(!running) { return false; }
             XrFrameState state=XrFrameState.calloc(s).type$Default();
 
@@ -164,6 +166,8 @@ public final class OpenXrSession implements AutoCloseable {
             XrFrameEndInfo end=XrFrameEndInfo.calloc(s).type$Default().displayTime(state.predictedDisplayTime()).environmentBlendMode(XR_ENVIRONMENT_BLEND_MODE_OPAQUE);
             Throwable failure=null;
             try {
+                if(controllers!=null)try{controllers.sample(head,state.predictedDisplayTime(),focused&&state.shouldRender(),s);}
+                catch(RuntimeException error){log("Controllers disabled: "+error);controllers.close();controllers=null;}
                 if(state.shouldRender() && renderer!=null) {
 
                     XrView.Buffer views=XrView.calloc(2,s); for(int i=0;i<2;i++) views.get(i).type$Default();
@@ -270,6 +274,7 @@ public final class OpenXrSession implements AutoCloseable {
         // Called only on owner/context thread, outside frame/texture operations. Session destruction
         // is legal in every state; do not block game teardown waiting for another event/draw.
         if(session!=null && running) cleanup(xrRequestExitSession(session),"request exit");
+        if(controllers!=null){controllers.close();controllers=null;}
         if(fbo!=0) { glDeleteFramebuffers(fbo); fbo=0; }
         for(Eye eye:eyes) destroy(eye);
         destroy(ui);ui=null;

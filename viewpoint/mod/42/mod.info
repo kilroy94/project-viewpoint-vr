@@ -1,7 +1,7 @@
 name=Project Viewpoint VR - Desktop + OpenXR [Java]
 id=ProjectViewpointVR
 author=Project Viewpoint VR
-modversion=0.6.1
+modversion=0.7.0
 versionMin=42.21.0
 versionMax=42.21.0
 require=\ZombieBuddy,Viewpoint

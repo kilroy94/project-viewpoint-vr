@@ -86,6 +86,7 @@ public final class GpuOutputTest {
             check(!glIsFramebuffer(pairIds[1]),"Live close retires eye");
             check(glGetError()==GL_NO_ERROR,"No final GL errors");
             UiGpuTest.run();
+            RayGpuTest.run();
             glDeleteTextures(texture);glDeleteBuffers(pack);glDeleteBuffers(unpack);
             System.out.println("Standalone GPU output: "+checks+" checks passed; "+glGetString(GL_RENDERER));
         } finally { glfwDestroyWindow(window);glfwTerminate(); }

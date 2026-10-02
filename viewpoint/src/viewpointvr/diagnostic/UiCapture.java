@@ -46,6 +46,8 @@ public final class UiCapture implements UiBridge.Sink,AutoCloseable {
             if(clock.getAsLong()-vanillaTime>2_000_000_000L)valid[0]=false;
             for(int i=0;i<4;i++)if(valid[i])blend(layers[i]);
             var cursor=UiBridge.cursor();
+            var ray=viewpointvr.input.InputBridge.ray();
+            if(ray!=null)cursor=new UiBridge.Cursor(ray.x(),ray.y(),true,System.nanoTime());
             if(cursor!=null&&cursor.visible()&&System.nanoTime()-cursor.time()<500_000_000L
                 &&cursor.x()>=0&&cursor.x()<1&&cursor.y()>=0&&cursor.y()<1){
                 int x=Math.round(cursor.x()*width),y=height-1-Math.round(cursor.y()*height);
@@ -54,11 +56,12 @@ public final class UiCapture implements UiBridge.Sink,AutoCloseable {
                 glClearColor(1,1,1,1);glScissor(x-1,y-4,3,9);glClear(GL_COLOR_BUFFER_BIT);
                 glScissor(x-4,y-1,9,3);glClear(GL_COLOR_BUFFER_BIT);
             }
+            viewpointvr.input.InputBridge.panel((float)width/height);
             published=clock.getAsLong();
         }finally{saved.restore().restore();for(int i=1;i<4;i++)valid[i]=false;}
     }
     public void failed(Throwable error){
-        failed=true;
+        failed=true;viewpointvr.input.InputBridge.clear();
         if(open!=-1){glBindFramebuffer(GL_DRAW_FRAMEBUFFER,caller);open=-1;}
         System.err.println("[Project Viewpoint VR UI] Capture disabled: "+error);
     }
