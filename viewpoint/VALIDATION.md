@@ -1,5 +1,15 @@
 # Viewpoint baseline validation
 
+## Persistent preferences: 0.7.2
+
+Turning mode, snap angle, smooth speed and world scale now survive restarts. The Java entry point loads `Project-Viewpoint-VR/settings.properties` from the Zomboid cache directory, applies preferences before runtime dispatch, and exposes them to the Lua panel. Turning changes save immediately; scale saves only after acceptance by RuntimeDriver. Renderer and controller activation are absent from the file and still start Off.
+
+Writes use a sibling temporary file and atomic replacement where supported, with replacement fallback. Invalid/missing fields use defaults; malformed/unreadable files do not prevent startup. A failed write keeps the current session choice and exposes a settings warning; a successful retry clears it. No existing user-data file was read or written by this work.
+
+Full Build.ps1 passed in run `9adfe536c8e34e36ac17c3a70ca76035`, including persistence round-trip, invalid values, missing keys, malformed files, failed replacement, temporary-file cleanup and retry tests. Runtime checks cover accepted-scale callbacks and rejecting invalid values without persistence. All existing controller, rendering, copied-class initialization, Lua compilation, GPU and missing-runtime checks passed. The tests create preference files only under their workspace run directory. No game or SteamVR launch; the in-game restart/UI confirmation remains pending.
+
+Package: `dist/ProjectViewpointVR-0.7.2.zip`, 83 production classes. ZIP SHA-256: `591d014b304525e0bc81a8889263784902576c29195db82862a57515e8c521b6`.
+
 ## Turning options restored: 0.7.1
 
 Restores the preserved mod's Off/Snap/Smooth selection, 15/30/45/60/90-degree snap choices, and 30?240-degree/second smooth speed choices in 15-degree steps. These are three dropdowns in the existing on-screen controls. Defaults retain 30-degree Snap, with 90 degrees/second selected for Smooth. Settings remain session-only. Turning Off preserves walking and pointer use.

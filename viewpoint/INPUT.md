@@ -1,10 +1,10 @@
-# Controller input (0.7.1)
+# Controller input (0.7.2)
 
 This is an opt-in implementation for the exact supported Viewpoint build. The user confirmed the 0.6.1 renderer and UI, but has no physical headset tester currently. Automated results below do not establish working hardware bindings or comfortable gameplay.
 
 ## Controls
 
-The on-screen panel adds **Controllers Off** (startup default), **UI pointer**, and **Pointer + move/turn**. Selection lasts for this game session. Off/Pause stops XR and clears all sampled input; a controller selection can resume after re-entering XR, with controls first returned to neutral. Desktop stereo has no controller acquisition.
+The on-screen panel adds **Controllers Off** (startup default), **UI pointer**, and **Pointer + move/turn**. Controller activation lasts for this game session. Off/Pause stops XR and clears all sampled input; a controller selection can resume after re-entering XR, with controls first returned to neutral. Desktop stereo has no controller acquisition.
 
 | Control | Effect |
 |---|---|
@@ -15,7 +15,7 @@ The on-screen panel adds **Controllers Off** (startup default), **UI pointer**, 
 | Left stick | Walk relative to native body heading in Pointer + move/turn, XR tracked, cursor captured |
 | Right stick left/right | Selected snap or smooth turn in the same gameplay mode; center stick to arm |
 
-**Turning settings:** the panel provides Off / Snap / Smooth, snap angles of 15, 30, 45, 60 or 90 degrees, and smooth speeds of 30?240 degrees/second in 15-degree steps. Defaults are Snap, 30 degrees and 90 degrees/second. Settings last for the session. Return the stick to neutral after changes. Smooth speed scales with horizontal stick deflection outside a 0.3 deadzone, uses elapsed game-input time, caps a single update at 50 ms, and disarms after a gap over 250 ms. Vertical-dominant stick input does not turn. Turning Off retains pointer, scrolling and walking.
+**Turning settings:** the panel provides Off / Snap / Smooth, snap angles of 15, 30, 45, 60 or 90 degrees, and smooth speeds of 30?240 degrees/second in 15-degree steps. Defaults are Snap, 30 degrees and 90 degrees/second. Turning settings and world scale are saved automatically to `Project-Viewpoint-VR/settings.properties` under the game's Zomboid cache directory and restored across restarts. Renderer and controller activation still start Off. Return the stick to neutral after changes. Smooth speed scales with horizontal stick deflection outside a 0.3 deadzone, uses elapsed game-input time, caps a single update at 50 ms, and disarms after a gap over 250 ms. Vertical-dominant stick input does not turn. Turning Off retains pointer, scrolling and walking.
 
 Middle mouse retains Viewpoint's native cursor toggle. No new keyboard shortcuts are assigned. Trigger does not attack or interact with the 3D world. Keyboard movement takes priority over stick movement. Menus/paused gameplay inhibit walking/turning. Mode changes, context changes, stale samples, focus loss and tracking loss require controls to return to neutral. Trigger thresholds are 0.65 press/0.25 release; walking has a 0.2 radial deadzone.
 

@@ -3,7 +3,6 @@ require "ISUI/ISButton"
 require "ISUI/ISTextEntryBox"
 require "ISUI/ISComboBox"
 
-local turnSelection = {2,2,5}
 local panel = nil
 local previous = nil
 local function drawStatus()
@@ -19,6 +18,16 @@ local function drawStatus()
     end
 end
 local function controls()
+    local angles={15,30,45,60,90}
+    local turnSelection={2,2,5}
+    local savedScale=1
+    if ProjectViewpointVR then
+        turnSelection[1]=ProjectViewpointVR.savedTurnMode()+1
+        local savedAngle=ProjectViewpointVR.savedSnapAngle()
+        for index,angle in ipairs(angles) do if angle==savedAngle then turnSelection[2]=index end end
+        turnSelection[3]=(ProjectViewpointVR.savedSmoothSpeed()-30)/15+1
+        savedScale=ProjectViewpointVR.savedWorldScale()
+    end
     if panel then panel:removeFromUIManager() end
     panel=ISPanel:new(16,112,410,166)
     panel:initialise()
@@ -34,7 +43,7 @@ local function controls()
     recenter:initialise();panel:addChild(recenter)
     local capture=ISButton:new(162,36,140,24,"Save PNG pair (Off)",nil,function() if ProjectViewpointVR then ProjectViewpointVR.requestCapture() end end)
     capture:initialise();panel:addChild(capture)
-    local scale=ISTextEntryBox:new("1.0",6,68,70,24)
+    local scale=ISTextEntryBox:new(tostring(savedScale),6,68,70,24)
     scale:initialise();panel:addChild(scale)
     local apply=ISButton:new(82,68,225,24,"Apply units/meter (while Off)",nil,function()
         local value=tonumber(scale:getText())
@@ -47,7 +56,6 @@ local function controls()
         local button=ISButton:new(6+(index-1)*133,102,129,24,mode[1],nil,function() if ProjectViewpointVR then ProjectViewpointVR.controllers(value) end end)
         button:initialise();panel:addChild(button)
     end
-    local angles={15,30,45,60,90}
     local turnBoxes={}
     local function turningChanged()
         for index,box in ipairs(turnBoxes) do turnSelection[index]=box.selected end

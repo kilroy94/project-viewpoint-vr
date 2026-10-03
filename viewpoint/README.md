@@ -1,4 +1,4 @@
-# Project Viewpoint VR runtime 0.7.1
+# Project Viewpoint VR runtime 0.7.2
 
 Read [TESTING.md](TESTING.md) for installation, mode controls, runtime setup, scale/recenter and limitations. The user's two 0.4.1 captures confirm the one-shot in-game path. The user also confirmed continuous desktop and null-headset tests. The user confirmed the 0.6.1 renderer update and UI work. Physical-headset testing is deferred; new controller live validation is pending. This build targets only Viewpoint 0.1.5a-hotfix. Development tracks the latest available renderer; previous Viewpoint versions are not retained as compatibility targets.
 
@@ -17,3 +17,5 @@ Eleven exact-pinned native classes are activated together: SceneDrawer, WorldRen
 `XrCamera` uses runtime eye poses, a yaw-only recenter, native body yaw, and adjustable uniform meters-to-scene scale. It renders symmetric frusta enclosing each runtime FOV, then the XR copy crops the asymmetric region. This avoids changing native sky/depth shaders. Eye orientation/position remain independent, including canted eye poses; no vertical-axis reflection from the old PZ3D camera is carried over. Physical scale and color must be validated with the headset.
 
 The [UI implementation](UI.md) combines game UI, Viewpoint loot/performance overlays and ImGui settings into a head-relative quad submitted alongside the world. It retains desktop input and adds a cursor marker. The [controller layer](INPUT.md) adds an opt-in ray, click/scroll and walking/snap turning. Tracked hand models, weapon interaction and combat remain outside this build. The inherited experiments and research remain historical references; do not use their installers for this project.
+
+Turning preferences and world scale are loaded from and saved to `Project-Viewpoint-VR/settings.properties` in the Zomboid cache directory when the user runs the mod. Renderer/controller activation is never persisted. The panel reads loaded preferences instead of resetting its displayed controls. Settings tests write only to a temporary directory inside their workspace test run.

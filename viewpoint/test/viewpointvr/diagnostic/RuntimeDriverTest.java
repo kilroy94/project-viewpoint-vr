@@ -28,6 +28,10 @@ public final class RuntimeDriverTest {
         pipeline.error=new IllegalStateException("render failure");driver.mode("DESKTOP");for(int i=0;i<4;i++)driver.render(null,()->nativeDraws.incrementAndGet());before=nativeDraws.get();
         try{driver.render(null,()->nativeDraws.incrementAndGet());throw new AssertionError("failure expected");}catch(IllegalStateException expected){}
         check(nativeDraws.get()==before,"partial rendering never replays original");check(driver.mode("DESKTOP").contains("Disabled"),"failure disarms");
+        driver.mode("OFF");var saved=new java.util.concurrent.atomic.AtomicInteger();
+        driver.scale(1.5,value->{check(value==1.5,"accepted scale callback value");saved.incrementAndGet();});
+        driver.scale(Double.NaN,value->saved.incrementAndGet());driver.scale(8,value->saved.incrementAndGet());
+        check(saved.get()==1,"invalid scale is not persisted");
         Visibility.off();check(!Visibility.visible(false)&&Visibility.hidden(true),"inactive visibility preserved");Visibility.touch();check(Visibility.visible(false)&&!Visibility.hidden(true),"active visibility broadens");Visibility.off();
         System.out.println("Runtime modes: "+checks+" checks passed");
     }

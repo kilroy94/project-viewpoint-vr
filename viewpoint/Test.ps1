@@ -37,7 +37,7 @@ $stageSources = Get-ChildItem "$PSScriptRoot/stage-fixtures" -Recurse -Filter *.
 & "$JavaHome/bin/javac.exe" -Xlint:all,-auxiliaryclass -cp $gameCopy -d $stageFixtures $stageSources
 if ($LASTEXITCODE -ne 0) { throw 'Native stage fixture compilation failed' }
 $testClasspath = "$tests;$classes;$gameCopy;$loaderCopy;$xrJar"
-foreach ($test in @('viewpointvr.input.TurningTest','viewpointvr.input.ControllerTest','viewpointvr.UiBridgeTest','viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
+foreach ($test in @('viewpointvr.diagnostic.SettingsStoreTest','viewpointvr.input.TurningTest','viewpointvr.input.ControllerTest','viewpointvr.UiBridgeTest','viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
     & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath $test $fixtures
     if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
 }

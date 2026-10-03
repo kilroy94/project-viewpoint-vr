@@ -38,10 +38,11 @@ public final class RuntimeDriver implements FrameBoundary.Driver {
         if(failed&&next!=Mode.OFF)return status="Disabled after rendering failure; restart before retrying";
         requested=next;return status="Requested "+next;
     }
-    public String scale(double value) {
+    public String scale(double value) {return scale(value,ignored->{});}
+    public String scale(double value,DoubleConsumer accepted) {
         if(requested!=Mode.OFF)return "Switch Off before changing scale";
         if(!Double.isFinite(value)||value<.25||value>4)return "Scale must be 0.25..4 scene units/meter";
-        scale=(float)value;return status="Scale: "+scale+" scene units/meter";
+        scale=(float)value;accepted.accept(scale);return status="Scale: "+scale+" scene units/meter";
     }
     public String recenter() {recenterAt=clock.getAsLong()+5_000_000_000L;return status="Recenter in 5 seconds: face forward";}
     public String status() {
