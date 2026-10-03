@@ -1,4 +1,4 @@
-# Project Viewpoint VR runtime 0.7.3
+# Project Viewpoint VR runtime 0.8.0
 
 Read [TESTING.md](TESTING.md) for installation, mode controls, runtime setup, scale/recenter and limitations. The user's two 0.4.1 captures confirm the one-shot in-game path. The user also confirmed continuous desktop and null-headset tests. The user confirmed the 0.6.1 renderer update and UI work. Physical-headset testing is deferred; new controller live validation is pending. This build targets only Viewpoint 0.1.5a-hotfix. Development tracks the latest available renderer; previous Viewpoint versions are not retained as compatibility targets.
 
@@ -21,3 +21,5 @@ The [UI implementation](UI.md) combines game UI, Viewpoint loot/performance over
 Turning preferences and world scale are loaded from and saved to `Project-Viewpoint-VR/settings.properties` in the Zomboid cache directory when the user runs the mod. Renderer/controller activation is never persisted. The panel reads loaded preferences instead of resetting its displayed controls. Settings tests write only to a temporary directory inside their workspace test run.
 
 The build also runs the production native input adapter against separately compiled, authored game/ImGui/device doubles. These tests exercise simulated UI events, focus/tracking recovery and native input routing; they neither run real game UI widgets nor inject input into a running game. See [INPUT.md](INPUT.md).
+
+The [in-game diagnostic](DIAGNOSTIC.md) adds explicitly armed UI-only scripted input and reports. Its engine tests run offline; actual Lua/ImGui widget outcomes require the user's game run. No native transforms were added: Viewpoint exposes the audited `SettingsWindow.panel(String, Runnable)` registration method used for the diagnostic section.

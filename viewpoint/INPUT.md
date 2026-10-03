@@ -1,4 +1,4 @@
-# Controller input (0.7.3)
+# Controller input (0.8.0)
 
 This is an opt-in implementation for the exact supported Viewpoint build. The user confirmed the 0.6.1 renderer and UI, but has no physical headset tester currently. Automated results below do not establish working hardware bindings or comfortable gameplay.
 
@@ -48,4 +48,4 @@ The standalone `sim.InputIntegration` suite feeds poses and buttons through the 
 
 Coverage includes vanilla and ImGui dragging, pixel mapping at different display sizes, UI routing changes while holding a trigger, physical mouse priority, wheel isolation and single consumption, keyboard movement priority, pause/menu locomotion blocking, focus/tracking/stale-sample loss, Off and session disconnect. The existing deterministic turning tests cover rates and repetition without sleep timing. These are adapter integration tests, not real inventory widgets, a running ImGui context or physical OpenXR devices.
 
-Version 0.7.3 corrects ImGui drag release after controller loss/Off: release uses the last controller point for that frame, then physical input resumes. It also discards queued controller wheel input when the controller target is no longer valid. No scripted input can be activated in the installed mod; live game testing remains a separate user-run step.
+Version 0.7.3 corrects ImGui drag release after controller loss/Off: release uses the last controller point for that frame, then physical input resumes. It also discards queued controller wheel input when the controller target is no longer valid. Version 0.8.0 adds an explicitly armed in-game diagnostic; see [DIAGNOSTIC.md](DIAGNOSTIC.md).

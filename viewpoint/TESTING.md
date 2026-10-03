@@ -1,4 +1,4 @@
-# Project Viewpoint VR 0.7.3 - controller input
+# Project Viewpoint VR 0.8.0 - controller input
 
 This experimental build implements continuous desktop stereo, OpenXR headset output, tracked head rotation/translation, and recentering. Version 0.4.1 produced two complete in-game stereo captures inspected on 2026-09-30. The user has since confirmed continuous desktop and null-headset tests without issues. Physical-headset testing is deferred. The user also confirmed the 0.6.1 renderer update and UI work. Controller input is new and requires live validation.
 
@@ -6,7 +6,7 @@ This experimental build implements continuous desktop stereo, OpenXR headset out
 
 ## Install
 
-1. Close Project Zomboid. Extract `ProjectViewpointVR-0.7.3.zip` into `%USERPROFILE%\Zomboid\mods`, replacing the previous ProjectViewpointVR files. The descriptor is `ProjectViewpointVR\42\mod.info`.
+1. Close Project Zomboid. Extract `ProjectViewpointVR-0.8.0.zip` into `%USERPROFILE%\Zomboid\mods`, replacing the previous ProjectViewpointVR files. The descriptor is `ProjectViewpointVR\42\mod.info`.
 2. Use Zomboid **42.21.0**, Viewpoint **0.1.5a-hotfix**, and ZombieBuddy **2.3.2** (original pinned JAR or audited B42.21 temporary fix). Exact binary checks remain mandatory. Approve the updated Java JAR if ZombieBuddy prompts.
 3. Enable those mods in a disposable single-player save. For an existing save, use **Load > select the save > Choose Mods** and explicitly enable **Project Viewpoint VR - Desktop + OpenXR [Java]** there; enabling it only at the main menu does not enable it for that save. Disable PZ3D and the old PZ3D VR mod for this save. Enter Viewpoint first person, on foot. Viewpoint's inspected default toggle is **O**; use your established control if different.
 4. The **Project Viewpoint VR** buttons appear near the upper left. Use Viewpoint's **middle mouse button** to free/capture the cursor when you need to click them. Turning preferences and world scale are saved across restarts; renderer and controller activation always start Off.
@@ -53,6 +53,10 @@ When controllers become available, follow [INPUT.md](INPUT.md): start with **UI 
 ## Persistent settings check
 
 Choose Smooth, a different snap angle/speed, and Apply a world scale while Off. Restart the game and confirm all four values are restored in the panel while renderer/controller activation remains Off. Preferences live in `Project-Viewpoint-VR/settings.properties` under the Zomboid cache directory (normally `%USERPROFILE%\Zomboid`). Each successful turning change and accepted scale Apply saves immediately. Invalid or missing values fall back to defaults. A write failure displays a settings warning and retains the choice for the current session. Remove the preferences file while the game is closed to restore defaults.
+
+## Scripted controller diagnostic
+
+Version 0.8.0 adds an explicitly armed null-headset diagnostic with two text reports. Follow [DIAGNOSTIC.md](DIAGNOSTIC.md) for the Zomboid test panel and Viewpoint settings VR tab. It tests dedicated UI widgets, not inventory transfers. Keep Controllers Off; the simulator temporarily supplies UI-only input and leaves preferences unchanged. Stop/Pause cancels. No diagnostic starts automatically.
 
 ## Scope and known limits
 

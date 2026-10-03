@@ -37,6 +37,7 @@ public final class Installation implements ClassFileTransformer,AutoCloseable {
         }
         new ViewpointBackend.Access(loader);
         new viewpointvr.input.NativeInput(loader);
+        Class.forName("viewpoint.platform.SettingsWindow",false,loader).getMethod("panel",String.class,Runnable.class);
     }
     public static Installation install(Instrumentation instrumentation,ClassLoader loader,Path jar) throws Exception {
         Installation install=new Installation(instrumentation,loader,jar);

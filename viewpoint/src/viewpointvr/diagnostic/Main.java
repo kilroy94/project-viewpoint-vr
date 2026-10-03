@@ -45,6 +45,8 @@ public final class Main {
             var turn=settings.turning();
             viewpointvr.input.InputBridge.turning(turn.mode(),turn.angle(),turn.speed());
             runtime.scale(settings.scale());
+            ControllerDiagnostic.directory(output.resolve("controller-diagnostics"));
+            try{ImGuiDiagnostic.install(owner);}catch(ReflectiveOperationException error){System.err.println("[Project Viewpoint VR] Diagnostic settings panel unavailable: "+error);}
             FrameBoundary.dispatcher(runtime);
             status=captures.status();
         } catch(Throwable error) {
@@ -81,11 +83,22 @@ public final class Main {
     public static double savedSnapAngle(){return settings==null?30:settings.turning().angle();}
     public static double savedSmoothSpeed(){return settings==null?90:settings.turning().speed();}
     public static double savedWorldScale(){return settings==null?1:settings.scale();}
-    public static String controllers(double value){viewpointvr.input.InputBridge.configure((int)value);return "Controllers: "+(int)value;}
-    public static String mode(String name){return runtime==null?status:runtime.mode(name);}
+    public static void diagnosticTargets(String kind,double cx,double cy,double dx,double dy,double ex,double ey,double sx,double sy,double width,double height){
+        try{ControllerDiagnostic.targets(new ControllerDiagnostic.Targets(kind,cx/width,cy/height,dx/width,dy/height,ex/width,ey/height,sx/width,sy/height,(int)width,(int)height),System.nanoTime());}catch(IllegalArgumentException error){ControllerDiagnostic.cancel("Invalid test surface bounds");}
+    }
+    public static String diagnosticStart(String kind){return ControllerDiagnostic.start(kind,System.nanoTime());}
+    public static void diagnosticStop(){ControllerDiagnostic.cancel("Stopped by user");}
+    public static double diagnosticPointerX(){var hit=viewpointvr.input.InputBridge.output.hit();return ControllerDiagnostic.active()&&hit!=null?hit.x():-1;}
+    public static double diagnosticPointerY(){var hit=viewpointvr.input.InputBridge.output.hit();return ControllerDiagnostic.active()&&hit!=null?hit.y():-1;}
+    public static String diagnosticStatus(){return ControllerDiagnostic.status();}
+    public static void diagnosticEvent(String kind,String event,double value){ControllerDiagnostic.event(kind,event,value);}
+    public static String controllers(double value){ControllerDiagnostic.cancel("Controller mode changed");viewpointvr.input.InputBridge.configure((int)value);return "Controllers: "+(int)value;}
+    public static String mode(String name){ControllerDiagnostic.cancel("Renderer mode changed");return runtime==null?status:runtime.mode(name);}
     public static String recenter(){return runtime==null?status:runtime.recenter();}
     public static String scale(double value){return runtime==null?status:runtime.scale(value,accepted->{if(settings!=null)settings.scale(accepted);});}
     public static void tick() {
+        if(stopKey())ControllerDiagnostic.cancel("Pause/Break pressed");
+        ControllerDiagnostic.watchdog(System.nanoTime());
         if(runtime==null||!tickQueued.compareAndSet(false,true))return;
         zombie.core.SpriteRenderer.instance.drawGeneric(new zombie.core.textures.TextureDraw.GenericDrawer(){
             @Override public void render(){try{runtime.idleTick();}finally{tickQueued.set(false);}}

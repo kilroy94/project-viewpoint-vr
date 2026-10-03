@@ -1,5 +1,15 @@
 # Viewpoint baseline validation
 
+## User-run controller diagnostic: 0.8.0
+
+Adds an explicitly armed UI-only simulator with a visible cyan pointer and incremental UTF-8 reports. Two dedicated test surfaces use real game UI paths when the user launches them: a Zomboid ISButton/Lua drag target/ISScrollingListBox and a Viewpoint settings panel with an ImGui button/slider/scrolling child. The settings panel uses the audited `SettingsWindow.panel(String, Runnable)` API; offline activation verifies its signature without initializing the class. No new transform targets or call sites were added.
+
+Each run has a release countdown, normal click/drag/scroll phases, simulated tracking/focus interruptions and held-trigger recovery. Input requests and native adapter observations are separate from widget callbacks/state changes; missing widget outcomes fail. Reports classify PASS/FAIL/NEEDS VISUAL CHECK, summarize failures, and end with an explicit completion marker. Actual inventory actions, physical runtime bindings and visual comfort are outside the scripted test. Input is confined to diagnostic target coordinates; movement/turning/menu buttons are never generated. Runtime/controller activation and saved preferences are not changed. Cancellation covers Stop, mode changes, Pause/Break, actual focus/eligibility/modal/onboarding changes, target closure/movement/resize, real controllers/physical mouse input and stalled callbacks.
+
+Full Build.ps1 passed in run `1ab874d9cad24ca0ab6e350f7e8ef95d`: 501 diagnostic checks (including per-tick UI-only invariants), 52 native-input integration checks and the complete existing controller, turning, persistence, renderer/lifecycle, copied-class initialization, Lua syntax, hidden GL and missing-runtime suite. Script tests use a fake clock and authored widget observations, explicitly testing that input delivery without widget events cannot produce widget PASS results. Report lifecycle tests create files only under the workspace run directory. Actual diagnostic Lua/ImGui widgets were not executed. No game or SteamVR launch and no game/Workshop/user-data writes were performed.
+
+Package inspection excludes game/mod binaries and fixtures. `dist/ProjectViewpointVR-0.8.0.zip` contains 88 production classes; ZIP SHA-256 `a586f703f97b9e5395950543c3ce7e824fa47c00365fed28d06df7ed45d7053d`. The user's first two live reports remain pending; see [DIAGNOSTIC.md](DIAGNOSTIC.md).
+
 ## Simulated controller integration: 0.7.3
 
 Added a standalone integration suite that executes the production InputBridge and NativeInput against separately compiled, authored device/game/ImGui doubles. Synthetic UI consumers record click/drag/release edges and release coordinates. The fixture checks dependency origin and production-adapter origin; no game/mod entry point is executed. The existing exact-pinned copied-class transform checks remain separate, without initialization. These tests do not run real game widgets or a native ImGui context.

@@ -22,6 +22,7 @@ public final class NativeInput implements InputBridge.Native {
   settings=field(loader,"viewpoint.platform.SettingsWindow","shown");onboarding=field(loader,"viewpoint.platform.Onboarding","shown");
  }
  private static Field field(ClassLoader loader,String type,String name)throws ReflectiveOperationException{var f=Class.forName(type,false,loader).getDeclaredField(name);f.setAccessible(true);return f;}
+ private boolean physicalButtons(){if(Mouse.buttonDownStates!=null)for(boolean pressed:Mouse.buttonDownStates)if(pressed)return true;return false;}
  private boolean focused(){long window=org.lwjglx.opengl.Display.getWindow();return window!=0&&glfwGetWindowAttrib(window,GLFW_FOCUSED)!=0;}
  private boolean owns()throws IllegalAccessException{
   var p=IsoPlayer.players[0];return focused()&&enabled.getBoolean(null)&&!third.getBoolean(null)&&!free.getBoolean(null)&&iris.get(null)==null
@@ -29,13 +30,14 @@ public final class NativeInput implements InputBridge.Native {
  }
  public void mouse()throws Throwable{
   boolean valid=owns();boolean released=!captured.getBoolean(null)&&InputBridge.panelReady();
-  long current=InputBridge.generation();if(current!=generation){generation=current;logic.reset();}
   boolean modal=zombie.ui.UIManager.isModalVisible();
   boolean menu=settings.getBoolean(null)||onboarding.getBoolean(null);
   int route=menu?2:1;
   if(previousRoute!=route)logic.reset();
   long now=System.nanoTime();
-  var next=logic.step(valid?InputBridge.state:ControllerState.EMPTY,now,InputBridge.mode,released,
+  viewpointvr.diagnostic.ControllerDiagnostic.beforeMouse(now,valid&&!modal&&!onboarding.getBoolean(null),released,route,physicalButtons(),Mouse.wheelDelta,Core.getInstance().getScreenWidth(),Core.getInstance().getScreenHeight());
+  long current=InputBridge.generation();if(current!=generation){generation=current;logic.reset();}
+  var next=logic.step(valid?InputBridge.sample():ControllerState.EMPTY,now,InputBridge.effectiveMode(),released,
     valid&&InputBridge.gameplay()&&!modal&&!menu&&!zombie.GameTime.isGamePaused(),InputBridge.aspect,InputBridge.turning);
   if(next.menu()&&valid&&!modal&&!menu&&!zombie.GameTime.isGamePaused()){cursorMode.setBoolean(null,!cursorMode.getBoolean(null));logic.reset();next=ControllerLogic.Output.NONE;}
   InputBridge.output=next;
@@ -54,6 +56,7 @@ public final class NativeInput implements InputBridge.Native {
    Mouse.lastActivity=System.currentTimeMillis();
   }
   if(route==2&&next.hit()!=null)wheel.addAndGet(next.scroll());else wheel.set(0);
+  if(route==1)viewpointvr.diagnostic.ControllerDiagnostic.observed("vanilla",Mouse.buttonDownStates[0],(float)mouseX.getInt(null)/Core.getInstance().getScreenWidth(),(float)mouseY.getInt(null)/Core.getInstance().getScreenHeight());
   if(next.turn()!=0)yaw.setFloat(null,(float)Math.IEEEremainder(yaw.getFloat(null)+next.turn(),Math.PI*2));
  }
  public void move(Object player,Object vector)throws Throwable{
@@ -63,12 +66,13 @@ public final class NativeInput implements InputBridge.Native {
   if(InputBridge.mode==2&&v.getLength()<.001f)v.set(output.moveX(),-output.moveY());
  }
  public void imgui()throws Throwable{
-  boolean valid=InputBridge.mode!=0&&InputBridge.state.fresh(System.nanoTime())&&focused();
+  boolean valid=InputBridge.effectiveMode()!=0&&InputBridge.sample().fresh(System.nanoTime())&&focused();
   var out=valid?InputBridge.output:ControllerLogic.Output.NONE;
   var point=out.hit()!=null?out.hit():imguiHeld?imguiLastHit:null;
   var io=ImGui.getIO();
   if(point!=null){io.setMousePos(point.x()*io.getDisplaySizeX(),point.y()*io.getDisplaySizeY());io.setMouseDown(0,io.getMouseDown(0)||out.down());}
   imguiHeld=out.hit()!=null&&out.down();if(out.hit()!=null)imguiLastHit=out.hit();
   int scroll=wheel.getAndSet(0);if(valid&&out.hit()!=null&&scroll!=0)io.setMouseWheel(io.getMouseWheel()+scroll);
+  viewpointvr.diagnostic.ControllerDiagnostic.observed("viewpoint",io.getMouseDown(0),io.getMousePosX()/io.getDisplaySizeX(),io.getMousePosY()/io.getDisplaySizeY());
  }
 }
