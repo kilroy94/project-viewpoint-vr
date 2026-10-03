@@ -1,4 +1,4 @@
-# Controller input (0.7.2)
+# Controller input (0.7.3)
 
 This is an opt-in implementation for the exact supported Viewpoint build. The user confirmed the 0.6.1 renderer and UI, but has no physical headset tester currently. Automated results below do not establish working hardware bindings or comfortable gameplay.
 
@@ -40,3 +40,12 @@ Input requires a focused game window, eligible Viewpoint first-person single-pla
 ControllerTest exercises panel geometry, click hysteresis, ray misses, neutral rearming, stale/focus/tracking loss, scroll repeat, movement deadzones, diagonal speed limits, snap-turn/menu edges, physical/virtual button merging and bridge invocation order/failures. RayGpuTest checks real cyan pixels for both eye offsets and restores framebuffer, viewport, VAO/program and compatibility GL state. All eleven copied targets are verified/retransformed without game/mod initialization.
 
 Physical binding selection, controller orientation, in-game inventory/settings clicks and scrolling, movement direction, snap-turn direction, focus/runtime recovery and comfort remain live acceptance tests. Hand models, inventory grabbing, weapons, melee, vehicles and multiplayer are not implemented. No SteamVR or game launch is part of automated validation.
+
+
+## Simulated native input integration
+
+The standalone `sim.InputIntegration` suite feeds poses and buttons through the production InputBridge and NativeInput adapters. Authored doubles supply physical mouse snapshots, window focus, player/menu state, and an ImGui IO surface. Test consumers record press/drag/release events and their positions. Fixture classes are compiled separately, checked for fixture origin, and excluded from the mod package. The game JAR supplies math dependencies; game/mod entry points are never executed.
+
+Coverage includes vanilla and ImGui dragging, pixel mapping at different display sizes, UI routing changes while holding a trigger, physical mouse priority, wheel isolation and single consumption, keyboard movement priority, pause/menu locomotion blocking, focus/tracking/stale-sample loss, Off and session disconnect. The existing deterministic turning tests cover rates and repetition without sleep timing. These are adapter integration tests, not real inventory widgets, a running ImGui context or physical OpenXR devices.
+
+Version 0.7.3 corrects ImGui drag release after controller loss/Off: release uses the last controller point for that frame, then physical input resumes. It also discards queued controller wheel input when the controller target is no longer valid. No scripted input can be activated in the installed mod; live game testing remains a separate user-run step.

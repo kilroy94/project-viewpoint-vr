@@ -1,4 +1,4 @@
-# Headset UI implementation (0.7.2)
+# Headset UI implementation (0.7.3)
 
 Target: exact-pinned Viewpoint 0.1.5a-hotfix and Zomboid 42.21.0. Decompiled classes informed call-site selection only; no dependency source or binaries are distributed. The current update preserves the audited UI capture call sites. The new setup wizard uses the same ImGuiFrame draw-data path as settings and is captured by that hook. Older Viewpoint binaries are no longer accepted.
 

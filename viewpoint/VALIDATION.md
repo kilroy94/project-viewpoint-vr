@@ -1,5 +1,15 @@
 # Viewpoint baseline validation
 
+## Simulated controller integration: 0.7.3
+
+Added a standalone integration suite that executes the production InputBridge and NativeInput against separately compiled, authored device/game/ImGui doubles. Synthetic UI consumers record click/drag/release edges and release coordinates. The fixture checks dependency origin and production-adapter origin; no game/mod entry point is executed. The existing exact-pinned copied-class transform checks remain separate, without initialization. These tests do not run real game widgets or a native ImGui context.
+
+The initial integration run reproduced a controller-loss drag release at physical mouse coordinates (11,13) instead of the last controller point. NativeInput now preserves the last ImGui controller position for its release frame on tracking/focus loss or Off, then resumes physical input normally. Pending scroll is consumed/discarded when the controller target disappears, preventing later replay.
+
+Final Build.ps1 passed in run `1f0bade3d887420cbb88eb36d630ccec`, including **52 new native-input integration checks**, 71 prior controller simulations, 58 turning checks, 24 persistence checks and all existing renderer/lifecycle/bridge, copied-class initialization, Lua syntax, hidden GPU and missing-runtime checks. New coverage includes vanilla/ImGui drag events, coordinate mapping and resize, physical mouse and keyboard priority, settings routing changes, wheel isolation/single consumption, menu/pause movement blocking, focus/tracking/stale data/Off/disconnect recovery, and original-callback counts. The final queued-scroll test covers loss between input sampling and UI drawing.
+
+Package inspection confirms no authored native doubles or test consumers are distributed. Package: `dist/ProjectViewpointVR-0.7.3.zip`, 83 production classes; ZIP SHA-256 `303665b017193cad7a386866f9828d7d5518594e931e98bb16cad87bb8bf4cd7`. No SteamVR/game launch, installed-mod write or user-data write. Live UI integration, physical bindings and comfort remain unverified. The tests add no in-game simulation switch.
+
 ## Persistent preferences: 0.7.2
 
 Turning mode, snap angle, smooth speed and world scale now survive restarts. The Java entry point loads `Project-Viewpoint-VR/settings.properties` from the Zomboid cache directory, applies preferences before runtime dispatch, and exposes them to the Lua panel. Turning changes save immediately; scale saves only after acceptance by RuntimeDriver. Renderer and controller activation are absent from the file and still start Off.

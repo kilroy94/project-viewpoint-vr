@@ -36,6 +36,13 @@ $stageSources = Get-ChildItem "$PSScriptRoot/stage-fixtures" -Recurse -Filter *.
 # Related package-private doubles intentionally share StageSupport.java.
 & "$JavaHome/bin/javac.exe" -Xlint:all,-auxiliaryclass -cp $gameCopy -d $stageFixtures $stageSources
 if ($LASTEXITCODE -ne 0) { throw 'Native stage fixture compilation failed' }
+$inputFixtures = "$run/input-fixtures"
+New-Item -ItemType Directory -Force $inputFixtures | Out-Null
+$inputSources = Get-ChildItem "$PSScriptRoot/input-fixtures" -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
+& "$JavaHome/bin/javac.exe" -Xlint:all -cp "$classes;$gameCopy" -d $inputFixtures $inputSources
+if ($LASTEXITCODE -ne 0) { throw 'Input fixture compilation failed' }
+& "$JavaHome/bin/java.exe" -Xverify:all -ea -cp "$inputFixtures;$classes;$gameCopy" sim.InputIntegration
+if ($LASTEXITCODE -ne 0) { throw 'Native input integration failed' }
 $testClasspath = "$tests;$classes;$gameCopy;$loaderCopy;$xrJar"
 foreach ($test in @('viewpointvr.diagnostic.SettingsStoreTest','viewpointvr.input.TurningTest','viewpointvr.input.ControllerTest','viewpointvr.UiBridgeTest','viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
     & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath $test $fixtures

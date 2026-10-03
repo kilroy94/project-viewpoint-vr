@@ -12,6 +12,7 @@ public final class NativeInput implements InputBridge.Native {
  private final ControllerLogic logic=new ControllerLogic();
  private final MouseMerge mouse=new MouseMerge();private int previousRoute;
  private long generation=-1;private PanelRay.Hit lastHit;
+ private boolean imguiHeld;private PanelRay.Hit imguiLastHit;
  private final java.util.concurrent.atomic.AtomicInteger wheel=new java.util.concurrent.atomic.AtomicInteger();
  public NativeInput(ClassLoader loader)throws ReflectiveOperationException{
   mouseX=field(loader,"zombie.input.Mouse","x");mouseY=field(loader,"zombie.input.Mouse","y");
@@ -62,9 +63,12 @@ public final class NativeInput implements InputBridge.Native {
   if(InputBridge.mode==2&&v.getLength()<.001f)v.set(output.moveX(),-output.moveY());
  }
  public void imgui()throws Throwable{
-  var out=InputBridge.output;if(InputBridge.mode==0||!InputBridge.state.fresh(System.nanoTime())||!focused())return;
+  boolean valid=InputBridge.mode!=0&&InputBridge.state.fresh(System.nanoTime())&&focused();
+  var out=valid?InputBridge.output:ControllerLogic.Output.NONE;
+  var point=out.hit()!=null?out.hit():imguiHeld?imguiLastHit:null;
   var io=ImGui.getIO();
-  if(out.hit()!=null){io.setMousePos(out.hit().x()*io.getDisplaySizeX(),out.hit().y()*io.getDisplaySizeY());io.setMouseDown(0,io.getMouseDown(0)||out.down());}
-  int scroll=wheel.getAndSet(0);if(scroll!=0)io.setMouseWheel(io.getMouseWheel()+scroll);
+  if(point!=null){io.setMousePos(point.x()*io.getDisplaySizeX(),point.y()*io.getDisplaySizeY());io.setMouseDown(0,io.getMouseDown(0)||out.down());}
+  imguiHeld=out.hit()!=null&&out.down();if(out.hit()!=null)imguiLastHit=out.hit();
+  int scroll=wheel.getAndSet(0);if(valid&&out.hit()!=null&&scroll!=0)io.setMouseWheel(io.getMouseWheel()+scroll);
  }
 }
