@@ -68,6 +68,14 @@ public final class InputIntegration {
   fresh();viewpoint.platform.CrashReport.shown=true;tick(NEUTRAL);tick(hand(.3f,.4f,1,0,0));check(ImGui.io.down&&!Mouse.buttonDownStates[0],"crash popup routes pointer only to ImGui");
   Look.captured=true;tick(NEUTRAL);sample(hand(.5f,.5f,0,0,1),hand(.5f,.5f,0,1,0));InputBridge.mouse(mouse);vector.set(0,0);InputBridge.move(IsoPlayer.players[0],vector,move);near(vector.getLength(),0,"crash popup blocks controller movement");near(Look.yaw,0,"crash popup blocks snap turning");
   fresh();int m=nativeMouse,u=nativeUi;tick(NEUTRAL);check(nativeMouse==m+1&&nativeUi==u+1,"native physical callbacks exactly once");
+  fresh();Mouse.buttonDownStates=null;Mouse.buttonPrevStates=null;InputBridge.configure(3);new NativeInput(InputIntegration.class.getClassLoader()).mouse();check(InputBridge.mode==3,"startup null mouse arrays do not disable controllers");Mouse.buttonDownStates=new boolean[3];Mouse.buttonPrevStates=new boolean[3];tick(NEUTRAL);check(InputBridge.mode==3,"input recovers after mouse initialization");
+  fresh();BodyTracking.clear();InputBridge.configure(3);Look.captured=true;tick(NEUTRAL);var bodyAdapter=new NativeInput(InputIntegration.class.getClassLoader());InputBridge.install(bodyAdapter);BodyTracking.head(.3f,-.2f,.4f,.1f,1);BodyTracking.enabled=true;
+  var actor=IsoPlayer.players[0];actor.x=actor.y=actor.z=0;bodyAdapter.beforeMovement(actor);vector.set(0,0);InputBridge.move(actor,vector,move);check(vector.getLength()>0&&BodyTracking.ownsFollow(),"room movement overlays native vector");
+  actor.x=.04f;actor.y=.02f;bodyAdapter.beforeMovement(actor);check(Math.hypot(BodyTracking.offset().x(),BodyTracking.offset().z())>.04,"only completed actor movement consumed");
+  var offset=BodyTracking.offset();vector.set(0,0);InputBridge.move(actor,vector,move);bodyAdapter.beforeMovement(actor);check(offset.equals(BodyTracking.offset()),"collision without movement consumes no room offset");
+  vector.set(.8f,.2f);InputBridge.move(actor,vector,move);check(!BodyTracking.ownsFollow(),"keyboard movement cancels room follow ownership");actor.x+=.03f;bodyAdapter.beforeMovement(actor);check(offset.equals(BodyTracking.offset()),"keyboard movement not subtracted from physical head offset");
+  InputBridge.configure(0);near(BodyTracking.yaw(.7f),.7f,"controller Off restores native body heading immediately");
+  BodyTracking.clear();
   InputBridge.install(null);InputBridge.clear();InputBridge.configure(0);
   System.out.println("Native input integration: "+checks+" checks passed; authored fixtures only");
  }

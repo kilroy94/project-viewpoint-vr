@@ -23,7 +23,8 @@ public final class ControllerLogic {
   if(!left.tracked())moveArmed=false;
   boolean menu=false;
   if(right.tracked()){
-   if(!right.menu())menuArmed=true;
+   boolean toggle=mode==3?right.button(10):right.menu();
+   if(!toggle)menuArmed=true;
    else if(menuArmed){menu=true;menuArmed=false;}
   }
   var hit=released&&right.tracked()?PanelRay.hit(right.aim(),aspect):null;
@@ -36,7 +37,7 @@ public final class ControllerLogic {
    if(Math.abs(right.y())<.25f)scrollArmed=true;
    if(scrollArmed&&Math.abs(right.y())>.6f&&now-lastScroll>=180_000_000L){scroll=right.y()>0?1:-1;lastScroll=now;}
   }
-  if(mode==2&&gameplay&&!released){
+  if((mode==2||mode==3)&&gameplay&&!released){
    if(left.tracked()){
     float length=(float)Math.hypot(left.x(),left.y());
     if(length<.2f)moveArmed=true;

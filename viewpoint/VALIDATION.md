@@ -1,5 +1,22 @@
 # Viewpoint baseline validation
 
+## First gameplay prototype: 0.10.0 (2026-10-27)
+
+The user confirmed 0.9.0 physical stereo, head tracking and room-scale visual movement with Steam Frame. Starting SteamVR manually resolved create-instance error -2. Body/controller gameplay did not work. Read-only console review showed Controllers Off throughout, right controller tracking and an early null Mouse.buttonDownStates exception. Left tracking was not observed; its cause is not established. This is user evidence for rendering/tracking, not gameplay acceptance.
+
+Added a VR gameplay button, optional Steam Frame extension/profile and native gamepad button acquisition. Null/uninitialized mouse arrays now defer input without disabling the layer. The gamepad registry overlay reuses authored prior-project code, strips PZ3D melee/hand dependencies, retains physical devices and delegates assignment to the native controller UI. R3 toggles the UI cursor; native right-stick axes stay neutral. Native body/movement/aim consumers receive head angles without altering renderer base Look values. Room-scale following requests bounded native movement and subtracts only measured actor displacement in the camera mapping. It retains a 12 cm lean allowance and rejects large jumps/floor changes. This is not head collision, full body IK, tracked weapons or hand interaction.
+
+Full Build.ps1 passed in `b904b156640e46aeb5fa1263c92f809d`:
+
+- 81 gameplay mapping/body checks: Frame paths and right-hand four-face mapping, gamepad axes/triggers/buttons, neutral rearming and loss, head-angle signs, lean/jump limits, no doubled camera translation across three yaws/three scales, zero collision displacement, teleport rejection and calibration/recenter behavior.
+- 63 production native-input adapter checks against authored doubles, including null startup/recovery and actual follow-request/actor-displacement compensation, keyboard priority and immediate Off heading restoration.
+- 12 transformed authored look-consumer checks: walking/body/aim/arm-pitch consumers, unchanged renderer Look fields, room-follow bypass of a zero native gamepad stick, and restoration on loss.
+- 19 native-gamepad lifecycle fixture checks: registration/metadata, native polling/button edges, releases/rearming, UI routing, Off, physical slot collision/draining/detach race and scoped assignment cleanup. No actual native game input implementation executed.
+- All 20 copied native targets activated, retransformed and restored without initialization. Activation/rollback/loader suite passed 31 checks, including duplicate/unknown rejection for all seven new targets. Initialization audits now also reject LWJGLx native-input class initialization.
+- Existing 501 diagnostic, 71 controller, 58 turning, 24 persistence, 256 camera, 485 lifecycle, 272 native-stage, 33 entry-fixture, 21 XR-camera, 18 runtime, 12 UI-bridge, 38 capture, 17 copied-entry and four Python cases passed. Lua compiled without execution. Hidden GL checks passed: 59 UI, 32 output and 15 ray. Missing-runtime rejection -51 preserved the caller context and did not launch SteamVR.
+
+Package: `dist/ProjectViewpointVR-0.10.0.zip`, 103 production classes, ZIP SHA-256 `d2575ff6269cac638a1ac20204640ce5b0e344c19fe3d4db6397b5c692d2ad45`. The extracted production JAR also passed the missing-runtime test using its bundled OpenXR loader. Archive CRC/version/class-exclusion and literal personal-path checks passed. No game/mod entry point or SteamVR was launched; no installed game/mod/Workshop or Zomboid user-data files were changed. Physical extension negotiation, gamepad activation/assignment, native action success, collision/animation feel and comfort await the user's first test. World picking still uses the native camera; head angle integration is not an independent interaction ray. The arm/held-item palette adaptation remains the next milestone.
+
 ## Compatibility port: 0.9.0 (2026-10-27)
 
 Installed Zomboid 42.21.0 remains byte-identical (`e1a69eb743ede60b213a0fe7f8b83d4fcab773036d256cc4543a336f3b058a33`). Viewpoint is now 0.1.6.1 (`096bd37d63cb699ac95e9e7ea5245a1b9b5ff08c5161db35f6733b1d1c42b064`) and ZombieBuddy 2.3.4 (`eb79b9876332010733a8e0d7ce4fe0377846059a9e28859029e2a0fb449f6cf2`). Both changed binaries required auditing/replacement of the old exact pins. The installed VR descriptor still identified 0.6.1; no controller reports existed at the default cache path. See [COMPATIBILITY.md](COMPATIBILITY.md) for review findings and current limitations.

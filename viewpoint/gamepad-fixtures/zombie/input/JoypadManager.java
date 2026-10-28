@@ -1,0 +1,1 @@
+package zombie.input;public class JoypadManager {public static final JoypadManager instance=new JoypadManager();public final Joypad[] joypads=new Joypad[4],joypadsController=new Joypad[16];public final java.util.ArrayList<Joypad> joypadList=new java.util.ArrayList<>();public static class Joypad {}}

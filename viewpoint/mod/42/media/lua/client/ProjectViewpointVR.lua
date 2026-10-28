@@ -94,7 +94,7 @@ local function controls()
         savedScale=ProjectViewpointVR.savedWorldScale()
     end
     if panel then panel:removeFromUIManager() end
-    panel=ISPanel:new(16,112,410,198)
+    panel=ISPanel:new(16,112,410,230)
     panel:initialise()
     panel.moveWithMouse=true
     panel:addToUIManager()
@@ -143,6 +143,8 @@ local function controls()
         panel:addChild(box)
     end
 
+    local play=ISButton:new(6,200,398,24,"VR gameplay (tracked + native gamepad)",nil,function() if ProjectViewpointVR then ProjectViewpointVR.gameplay() end end)
+    play:initialise();panel:addChild(play)
     local testButton=ISButton:new(6,168,260,24,"Open controller diagnostic",nil,function() if ProjectViewpointVR then openDiagnostic() end end)
     testButton:initialise();panel:addChild(testButton)
     local stopTest=ISButton:new(272,168,132,24,"Stop diagnostic",nil,function() if ProjectViewpointVR then ProjectViewpointVR.diagnosticStop() end end)

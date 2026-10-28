@@ -43,8 +43,15 @@ $inputSources = Get-ChildItem "$PSScriptRoot/input-fixtures" -Recurse -Filter *.
 if ($LASTEXITCODE -ne 0) { throw 'Input fixture compilation failed' }
 & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp "$inputFixtures;$classes;$gameCopy" sim.InputIntegration
 if ($LASTEXITCODE -ne 0) { throw 'Native input integration failed' }
+$lookFixtures = "$run/look-fixtures"
+New-Item -ItemType Directory -Force $lookFixtures | Out-Null
+$lookSources = Get-ChildItem "$PSScriptRoot/look-fixtures" -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
+& "$JavaHome/bin/javac.exe" -Xlint:all -d $lookFixtures $lookSources
+if ($LASTEXITCODE -ne 0) { throw 'Gameplay look fixture compilation failed' }
+& "$JavaHome/bin/java.exe" -Xverify:all -ea -cp "$tests;$classes;$gameCopy;$loaderCopy" viewpointvr.instrument.GameplayFixtureTest $lookFixtures
+if ($LASTEXITCODE -ne 0) { throw 'Gameplay transformed fixtures failed' }
 $testClasspath = "$tests;$classes;$gameCopy;$loaderCopy;$xrJar"
-foreach ($test in @('viewpointvr.diagnostic.ControllerDiagnosticTest','viewpointvr.diagnostic.SettingsStoreTest','viewpointvr.input.TurningTest','viewpointvr.input.ControllerTest','viewpointvr.UiBridgeTest','viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
+foreach ($test in @('viewpointvr.diagnostic.ControllerDiagnosticTest','viewpointvr.diagnostic.SettingsStoreTest','viewpointvr.input.GameplayTest','viewpointvr.input.TurningTest','viewpointvr.input.ControllerTest','viewpointvr.UiBridgeTest','viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
     & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath $test $fixtures
     if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
 }
@@ -61,6 +68,13 @@ Can-Retransform-Classes: true
 '@ | Set-Content "$run/agent.mf" -Encoding ASCII
 & "$JavaHome/bin/jar.exe" --create --file "$run/test-agent.jar" --manifest "$run/agent.mf" -C $tests viewpointvr/instrument/TestAgent.class
 if ($LASTEXITCODE -ne 0) { throw 'Test agent packaging failed' }
+$padFixtures = "$run/gamepad-fixtures"
+New-Item -ItemType Directory -Force $padFixtures | Out-Null
+$padSources = Get-ChildItem "$PSScriptRoot/gamepad-fixtures" -Recurse -Filter *.java | Select-Object -ExpandProperty FullName
+& "$JavaHome/bin/javac.exe" -Xlint:all -cp "$tests;$classes;$gameCopy;$loaderCopy" -d $padFixtures $padSources
+if ($LASTEXITCODE -ne 0) { throw 'Gamepad fixture compilation failed' }
+& "$JavaHome/bin/java.exe" -Xverify:all -ea "-javaagent:$run/test-agent.jar" -cp "$padFixtures;$testClasspath" sim.GamepadIntegration
+if ($LASTEXITCODE -ne 0) { throw 'Gamepad lifecycle fixture failed' }
 # Use a relative logging path: HotSpot -Xlog parses the colon in a Windows absolute path as an option separator.
 Push-Location $run
 try {

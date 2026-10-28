@@ -28,7 +28,7 @@ public final class InstallTest {
         try(var jar=new JarFile(mod.toFile())){
             for(int i=0;i<targets.length;i++){
                 String name=Installation.TARGETS.get(i);targets[i]=Class.forName(name.replace('/','.'),false,loader);
-                try(var in=jar.getInputStream(jar.getJarEntry(name+".class"))){expected.put(name,CanonicalClass.encode(in.readAllBytes()));}
+                try(var gameJar=new JarFile(args[1])){var from=jar.getJarEntry(name+".class")!=null?jar:gameJar;try(var in=from.getInputStream(from.getJarEntry(name+".class"))){expected.put(name,CanonicalClass.encode(in.readAllBytes()));}}
             }
         }
         var visibilityTransform=new VisibilityTransform(mod);
@@ -55,11 +55,15 @@ public final class InstallTest {
                 rejects(()->uiTransform.transform(name+"Unknown",source));
             }
         }
+        var gameplay=new GameplayTransform(mod,Path.of(args[1]),loader);
+        for(String name:GameplayTransform.TARGETS)try(var nativeJar=new JarFile(viewpointvr.input.ControllerInstallation.TARGETS.contains(name)?args[1]:args[0]);var in=nativeJar.getInputStream(nativeJar.getJarEntry(name+".class"))){
+            byte[] patched=gameplay.transform(name,in.readAllBytes());rejects(()->gameplay.transform(name,patched));rejects(()->gameplay.transform(name+"Unknown",patched));
+        }
         var locked=(Instrumentation)Proxy.newProxyInstance(loader,new Class<?>[]{Instrumentation.class},(p,m,a)->{
             if(m.getName().equals("isModifiableClass"))return false;return m.invoke(instrumentation,a);
         });
-        rejects(()->Installation.install(locked,loader,mod));
-        var installed=Installation.install(instrumentation,loader,mod);check(installed.ready(),"All-target activation");
+        rejects(()->Installation.install(locked,loader,mod,Path.of(args[1])));
+        var installed=Installation.install(instrumentation,loader,mod,Path.of(args[1]));check(installed.ready(),"All-target activation");
         instrumentation.retransformClasses(targets);check(installed.ready(),"Compatible repeat retransform stays armed");
         installed.close();check(!installed.ready(),"Explicit removal disarms");
         AtomicBoolean corrupt=new AtomicBoolean(true);
@@ -78,9 +82,9 @@ public final class InstallTest {
         };
         instrumentation.addTransformer(other,true);
         try{
-            rejects(()->Installation.install(instrumentation,loader,mod)); // Partial acceptance must roll back.
+            rejects(()->Installation.install(instrumentation,loader,mod,Path.of(args[1]))); // Partial acceptance must roll back.
             corrupt.set(false);instrumentation.retransformClasses(targets);
-            installed=Installation.install(instrumentation,loader,mod);check(installed.ready(),"Fresh install after rollback");
+            installed=Installation.install(instrumentation,loader,mod,Path.of(args[1]));check(installed.ready(),"Fresh install after rollback");
             corrupt.set(true);instrumentation.retransformClasses(targets);
             check(!installed.ready()&&installed.failure()!=null,"Incompatible later code permanently disarms capture");
             installed.close();

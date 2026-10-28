@@ -18,6 +18,7 @@ public final class Main {
     /** Called by ZombieBuddy in the user's game only. Never invoked by offline tests. */
     public static synchronized void main(String[] args) {
         if(attempted) return; attempted=true;
+        System.out.println("[Project Viewpoint VR] Starting 0.10.0 gameplay prototype; start SteamVR before XR");
         try {
             if(zombie.network.GameClient.client || zombie.network.GameServer.server) throw new IllegalStateException("Single player only");
             Class<?> drawer=Class.forName("viewpoint.SceneDrawer",false,Main.class.getClassLoader());
@@ -26,7 +27,7 @@ public final class Main {
             ClassLoader owner=drawer.getClassLoader();
             var field=Loader.class.getDeclaredField("g_instrumentation"); field.setAccessible(true);
             Instrumentation instrumentation=(Instrumentation)field.get(null);
-            Installation installed=Installation.install(instrumentation,owner,mod);
+            Installation installed=Installation.install(instrumentation,owner,mod,game);
             installation=installed;
             var access=new ViewpointBackend.Access(owner);
             Path output=Path.of(zombie.ZomboidFileSystem.instance.getCacheDir(),"Project-Viewpoint-VR");
@@ -93,7 +94,8 @@ public final class Main {
     public static String diagnosticStatus(){return ControllerDiagnostic.status();}
     public static void diagnosticEvent(String kind,String event,double value){ControllerDiagnostic.event(kind,event,value);}
     public static String controllers(double value){ControllerDiagnostic.cancel("Controller mode changed");viewpointvr.input.InputBridge.configure((int)value);return "Controllers: "+(int)value;}
-    public static String mode(String name){ControllerDiagnostic.cancel("Renderer mode changed");return runtime==null?status:runtime.mode(name);}
+    public static String gameplay(){ControllerDiagnostic.cancel("VR gameplay requested");viewpointvr.input.InputBridge.configure(3);return mode("XR_TRACKED");}
+    public static String mode(String name){ControllerDiagnostic.cancel("Renderer mode changed");if(!name.equals("XR_TRACKED"))viewpointvr.input.InputBridge.configure(0);return runtime==null?status:runtime.mode(name);}
     public static String recenter(){return runtime==null?status:runtime.recenter();}
     public static String scale(double value){return runtime==null?status:runtime.scale(value,accepted->{if(settings!=null)settings.scale(accepted);});}
     public static void tick() {

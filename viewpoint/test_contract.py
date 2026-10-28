@@ -9,7 +9,7 @@ class ContractTest(unittest.TestCase):
     def test_initialization_log(self):
         safe = "Initializing 'java/lang/Object'\nStart class verification for: viewpoint.SceneDrawer\n"
         verify(safe)
-        for package in ["viewpoint/SceneDrawer", "zombie/GameWindow", "me/zed_0xff/zombie_buddy/Loader"]:
+        for package in ["org/lwjglx/input/Controller", "org.lwjglx.input.Controllers", "viewpoint/SceneDrawer", "zombie/GameWindow", "me/zed_0xff/zombie_buddy/Loader"]:
             with self.assertRaises(ValueError):
                 verify(safe + "Initializing '" + package + "'\n")
         with self.assertRaises(ValueError):

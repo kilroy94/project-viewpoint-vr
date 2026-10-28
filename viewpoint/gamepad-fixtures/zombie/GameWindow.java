@@ -1,0 +1,1 @@
+package zombie; public class GameWindow {public static zombie.input.JoypadManager.Joypad activatedJoyPad;}

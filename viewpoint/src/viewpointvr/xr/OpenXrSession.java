@@ -52,8 +52,14 @@ public final class OpenXrSession implements AutoCloseable {
         // Do not destroy LWJGL's process-wide XR loader; other mods may share it.
         XR.getFunctionProvider();
         try(MemoryStack s=stackPush()) {
+            var count=s.mallocInt(1);check(xrEnumerateInstanceExtensionProperties((String)null,count,null),"extension count");
+            var available=XrExtensionProperties.calloc(count.get(0),s);for(int i=0;i<available.capacity();i++)available.get(i).type$Default();
+            check(xrEnumerateInstanceExtensionProperties((String)null,count,available),"extensions");
+            boolean frame=false;for(int i=0;i<available.capacity();i++)frame|=available.get(i).extensionNameString().equals(ControllerBindings.FRAME_EXTENSION);
+            var extensions=s.mallocPointer(frame?2:1);extensions.put(s.UTF8(XR_KHR_OPENGL_ENABLE_EXTENSION_NAME));if(frame)extensions.put(s.UTF8(ControllerBindings.FRAME_EXTENSION));extensions.flip();
+            log("Steam Frame controller extension: "+(frame?"enabled":"not advertised; using core profiles"));
             XrInstanceCreateInfo create=XrInstanceCreateInfo.calloc(s).type$Default()
-                .enabledExtensionNames(s.pointers(s.UTF8(XR_KHR_OPENGL_ENABLE_EXTENSION_NAME)));
+                .enabledExtensionNames(extensions);
             create.applicationInfo().applicationName(s.UTF8("Project Viewpoint VR")).applicationVersion(3)
                 .engineName(s.UTF8("Viewpoint adapter")).engineVersion(1).apiVersion(XR_MAKE_VERSION(1,0,0));
             PointerBuffer pointer=s.mallocPointer(1);
@@ -76,7 +82,7 @@ public final class OpenXrSession implements AutoCloseable {
             session=new XrSession(pointer.get(0),instance);
             local=space(XR_REFERENCE_SPACE_TYPE_LOCAL,s); head=space(XR_REFERENCE_SPACE_TYPE_VIEW,s);
             createSwapchains(s); fbo=glGenFramebuffers();
-            try{controllers=new XrControllers(instance,session);}catch(RuntimeException error){log("Controllers unavailable; world rendering retained: "+error);}
+            try{controllers=new XrControllers(instance,session,frame);}catch(RuntimeException error){log("Controllers unavailable; world rendering retained: "+error);}
             log("Session created on existing context; waiting for READY");
         }
     }

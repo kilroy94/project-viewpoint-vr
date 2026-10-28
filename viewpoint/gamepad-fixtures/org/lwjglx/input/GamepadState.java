@@ -1,0 +1,1 @@
+package org.lwjglx.input;public final class GamepadState {public boolean polled;public final org.lwjgl.glfw.GLFWGamepadState axesButtons=org.lwjgl.glfw.GLFWGamepadState.calloc();public final java.nio.ByteBuffer hats=java.nio.ByteBuffer.allocateDirect(8);public int hatState;}

@@ -26,6 +26,10 @@ public final class UiTransform {
                             super.visitLdcInsn(new Handle(H_INVOKESTATIC,owner,called,desc,false));
                             super.visitMethodInsn(INVOKESTATIC,"viewpointvr/input/InputBridge","mouse","(Ljava/lang/invoke/MethodHandle;)V",false);hits[0]++;return;
                         }
+                        if(name.equals(TARGETS.get(0))&&method.equals("movementStarting")&&op==INVOKESTATIC&&owner.equals("viewpoint/input/Controls")&&called.equals("beforeMovement")&&desc.equals("(Lzombie/characters/IsoPlayer;)V")){
+                            super.visitLdcInsn(new Handle(H_INVOKESTATIC,owner,called,desc,false));
+                            super.visitMethodInsn(INVOKESTATIC,"viewpointvr/input/InputBridge","beforeMovement","(Ljava/lang/Object;Ljava/lang/invoke/MethodHandle;)V",false);hits[0]++;return;
+                        }
                         if(name.equals(TARGETS.get(0))&&method.equals("inputMoveVector")&&op==INVOKESTATIC&&owner.equals("viewpoint/input/Controls")&&called.equals("moveVector")&&desc.equals("(Lzombie/characters/IsoPlayer;Lzombie/iso/Vector2;)V")){
                             super.visitLdcInsn(new Handle(H_INVOKESTATIC,owner,called,desc,false));
                             super.visitMethodInsn(INVOKESTATIC,"viewpointvr/input/InputBridge","move","(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/invoke/MethodHandle;)V",false);hits[0]++;return;
@@ -54,7 +58,7 @@ public final class UiTransform {
                 };
             }
         },0);
-        if(hits[0]!=(name.equals(TARGETS.get(0))?5:2))throw new IllegalArgumentException("UI anchor count: "+name+" = "+hits[0]);
+        if(hits[0]!=(name.equals(TARGETS.get(0))?6:2))throw new IllegalArgumentException("UI anchor count: "+name+" = "+hits[0]);
         return writer.toByteArray();
     }
 }

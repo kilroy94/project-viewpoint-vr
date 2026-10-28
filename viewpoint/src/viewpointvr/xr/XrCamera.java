@@ -36,7 +36,7 @@ public final class XrCamera {
         if(!Float.isFinite(sceneUnitsPerMeter)||sceneUnitsPerMeter<.25f||sceneUnitsPerMeter>4) throw new IllegalArgumentException("Scale must be .25..4 scene units per meter");
         scale=sceneUnitsPerMeter;
     }
-    public void recenter() {origin=null;inverseYaw=null;}
+    public void recenter() {origin=null;inverseYaw=null;viewpointvr.input.BodyTracking.clear();}
     public StereoCamera.Pair eyes(Pose head,List<View> views,Vector3f center,float yaw,float pitch,boolean tracked) {
         if(views.size()!=2) throw new IllegalArgumentException("Two XR eyes required");
         Matrix4f headMatrix=head.matrix();
@@ -47,7 +47,14 @@ public final class XrCamera {
             inverseYaw=new Quaternionf().rotationY(-heading);
         }
         Matrix4f base=new Matrix4f().translationRotate(center.x,center.y,center.z,StereoCamera.viewpointLook(yaw,tracked?0:pitch));
-        Matrix4f mapping=new Matrix4f(base).scale(scale).rotate(inverseYaw).translate(new Vector3f(origin).negate());
+        var offset=viewpointvr.input.BodyTracking.offset();
+        Vector3f delta=inverseYaw.transform(new Vector3f(head.x(),head.y(),head.z()).sub(origin));
+        delta.x-=offset.x();delta.z-=offset.z();
+        Vector3f forward=new Matrix4f().rotate(inverseYaw).mul(headMatrix).transformDirection(new Vector3f(0,0,-1));
+        float heading=(float)Math.atan2(-forward.x,-forward.z);
+        if(tracked)viewpointvr.input.BodyTracking.head(delta.x,delta.z,heading,(float)Math.atan2(forward.y,Math.hypot(forward.x,forward.z)),scale);
+        Vector3f consumed=new Quaternionf(inverseYaw).conjugate().transform(new Vector3f(offset.x(),0,offset.z()));
+        Matrix4f mapping=new Matrix4f(base).scale(scale).rotate(inverseYaw).translate(new Vector3f(origin).add(consumed).negate());
         Matrix4f fixed=headMatrix.invert(new Matrix4f());
         StereoCamera.Eye[] eyes=new StereoCamera.Eye[2];
         for(int i=0;i<2;i++) {

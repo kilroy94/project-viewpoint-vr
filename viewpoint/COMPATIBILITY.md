@@ -1,5 +1,7 @@
 # Compatibility review: Project Viewpoint VR 0.9.0
 
+This records the renderer compatibility port. Current 0.10.0 keeps these exact binary targets and adds gameplay hooks; the user has since confirmed physical stereo/head tracking on 0.9.0. See [current gameplay scope](INPUT.md) and [validation](VALIDATION.md).
+
 Audited 2026-10-27 against the installed binaries, with changes built in the isolated workspace. No game/SteamVR launch, installer execution, Workshop writes or Zomboid user-data writes were performed.
 
 | Component | Installed target | Review result |

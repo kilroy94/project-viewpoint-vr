@@ -6,7 +6,7 @@
 
 The installed Viewpoint 0.1.6.1 and Zomboid 42.21.0 JARs were inspected with JDK bytecode tools and Vineflower. Exact SHA-256 pins are in [pins.json](../viewpoint/pins.json). Decompiled implementations are evidence only, not source to copy into this project. Generated disassembly and proprietary copies are local ignored build inputs. No game/mod entry point was run. Findings below describe the pinned binary, not stable public APIs.
 
-The 0.4.1 one-shot diagnostic produced two complete in-game stereo captures during the user's 2026-09-30 test. Version 0.5.0 implements continuous desktop stereo, OpenXR submission, independent head tracking and recentering. The user subsequently confirmed continuous desktop and null-headset tests without issues; physical-headset testing is deferred. Version 0.6.1 ported the UI/stereo implementation to 0.1.5a-hotfix; the user subsequently confirmed the updated renderer and UI work. Maintain the latest Viewpoint target only. See the current [test guide](../viewpoint/TESTING.md).
+The 0.4.1 one-shot diagnostic produced two complete in-game stereo captures during the user's 2026-09-30 test. Version 0.5.0 implements continuous desktop stereo, OpenXR submission, independent head tracking and recentering. The user subsequently confirmed continuous desktop and null-headset tests without issues; physical-headset testing was initially deferred. The user has now confirmed physical stereo/head tracking with Steam Frame on 0.9.0. Version 0.6.1 ported the UI/stereo implementation to 0.1.5a-hotfix; the user subsequently confirmed the updated renderer and UI work. Maintain the latest Viewpoint target only. See the current [test guide](../viewpoint/TESTING.md).
 
 ## The boundary that must be implemented
 
@@ -42,7 +42,7 @@ Arm IK/calibration math may carry over later. Viewpoint uses packed 12-float bon
 
 ## Acceptance sequence
 
-Offline contract/camera tests, native pair lifecycle, real GL capture and loader activation are complete. The first in-game capture milestone is confirmed. Continuous desktop -> fixed XR -> tracked XR/recenter are now implemented in one package at the user's request, with separate controls for live isolation. The user confirmed desktop and null-headset tests and authorized proceeding with UI while physical-headset testing waits. The user now requires tracking the latest available Viewpoint without maintaining old-version compatibility. Version 0.9.0 replaces the 0.1.5a-hotfix target with installed 0.1.6.1; future upstream changes require an audit of affected contracts.
+Offline contract/camera tests, native pair lifecycle, real GL capture and loader activation are complete. The first in-game capture milestone is confirmed. Continuous desktop -> fixed XR -> tracked XR/recenter are now implemented in one package at the user's request, with separate controls for live isolation. The user confirmed desktop and null-headset tests and authorized proceeding with UI while physical-headset testing was deferred. The user now requires tracking the latest available Viewpoint without maintaining old-version compatibility. Version 0.9.0 replaces the 0.1.5a-hotfix target with installed 0.1.6.1; future upstream changes require an audit of affected contracts.
 
 
 ## Controller milestone 0.7.0
@@ -52,4 +52,12 @@ OpenXR aim/grip acquisition, right-hand UI pointing/clicking/scrolling and optio
 
 ## Compatibility audit 0.9.0 (2026-10-27)
 
-Installed Zomboid 42.21.0 is byte-identical to the prior game JAR. Viewpoint 0.1.6.1 and ZombieBuddy 2.3.4 require new exact pins. The scene entry now constructs a Runnable inside a native guarded boundary; FrameEnd owns post-processing, SkyPass owns weather-map drawing, FarGpu consolidates uploads, and CameraShot owns seated/third-person snapshot flags. MouseButtons.pin replaces Controls.pinMouse, and crash-report windows share the ImGui input route. See [compatibility review](../viewpoint/COMPATIBILITY.md). User-confirmed old renderer/UI behavior does not validate this port.
+Installed Zomboid 42.21.0 is byte-identical to the prior game JAR. Viewpoint 0.1.6.1 and ZombieBuddy 2.3.4 require new exact pins. The scene entry now constructs a Runnable inside a native guarded boundary; FrameEnd owns post-processing, SkyPass owns weather-map drawing, FarGpu consolidates uploads, and CameraShot owns seated/third-person snapshot flags. MouseButtons.pin replaces Controls.pinMouse, and crash-report windows share the ImGui input route. See [compatibility review](../viewpoint/COMPATIBILITY.md). The user subsequently confirmed 0.9.0 physical stereo/head tracking with Steam Frame, and reported body/controller gameplay gaps.
+
+## Gameplay prototype 0.10.0
+
+User now owns Steam Frame. Start SteamVR before selecting XR; manual startup fixed the reported create-instance -2 error. Physical stereo/head tracking/room-scale visual motion are user-confirmed on 0.9.0, while native body/controller integration was absent. Read-only log review found Controllers Off throughout, right controller tracking and a startup null mouse-array exception.
+
+Version 0.10.0 adds an explicit VR gameplay entry point, optional Frame extension/profile bindings, native controller slot-15 overlay, head-aligned movement/body/aim consumers and bounded horizontal actor following. It reuses the earlier authored gamepad mapper/registry approach without PZ3D runtime dependencies. Twenty native classes activate atomically, including seven new gameplay/gamepad targets. Native renderer base Look values remain unchanged. Room following consumes collision-resolved actor movement rather than teleporting or applying physical displacement twice. See [INPUT.md](../viewpoint/INPUT.md) for mapping/ownership and [TESTING.md](../viewpoint/TESTING.md) for assignment and first-test sequence.
+
+This is a first gameplay prototype, pending live testing. Native world picking is still based on Viewpoint's ordinary camera, so angular head alignment is not a tracked-hand interaction ray. The next milestone is tracked arm/held-item adaptation and consistent world targeting. ModelCapture receives 16-float native palettes, then ModelDraws/ModelPass pack 12-float render palettes with motion, visibility/mask and attachment records; adapt the old IK math at an owned pose boundary rather than copying PZ3D renderer hooks. No arm or damage validation is claimed.
