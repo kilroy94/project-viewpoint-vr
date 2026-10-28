@@ -32,7 +32,7 @@ public final class NativePipeline implements RuntimeDriver.Pipeline {
                 try{var hit=viewpointvr.input.InputBridge.ray();if(hit!=null){if(ray==null)ray=new RayRenderer();ray.draw(source,w,h,hit,head,views.get(eye));}}
                 catch(Throwable error){viewpointvr.input.InputBridge.configure(0);System.err.println("[Project Viewpoint VR Input] Ray disabled: "+error);}
                 sink.copy(eye,source,w,h);
-            });
+            },true);
             consumed[0]=true;
             ViewpointBackend.cameras(access,out,(center,yaw,pitch,fov)->camera.eyes(head,views,center,yaw,pitch,tracked,viewpointvr.input.BodyTracking.offsetFor(frame(access,drawer)))).render(drawer,original);
             if(!out.published())throw new IllegalStateException("Native scene declined XR pair");

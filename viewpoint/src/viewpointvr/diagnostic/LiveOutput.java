@@ -10,12 +10,16 @@ public final class LiveOutput implements ViewpointBackend.Output,AutoCloseable {
     private final int[] targets=new int[2];
     private int width,height,wantedWidth,wantedHeight,copied;
     private ViewpointBackend.SavedOutput saved;
-    private boolean restored,active,published;
+    private boolean restored,active,published,singleEye;
     private Copy copy;
     public LiveOutput(LwjglGraphics gl) {this.gl=gl;}
     public void begin(int width,int height,Copy copy) {
+        begin(width,height,copy,false);
+    }
+    /** Desktop presentation only: both eyes are still rendered and copied. */
+    public void begin(int width,int height,Copy copy,boolean singleEye) {
         check();if(active)throw new IllegalStateException("Output frame still active");
-        wantedWidth=width;wantedHeight=height;this.copy=copy;published=false;
+        wantedWidth=width;wantedHeight=height;this.copy=copy;this.singleEye=singleEye;published=false;
     }
     private void check() {if(Thread.currentThread()!=owner)throw new IllegalStateException("Output thread changed");}
     public boolean published() {return published;}
@@ -38,7 +42,11 @@ public final class LiveOutput implements ViewpointBackend.Output,AutoCloseable {
         check();if(!active||eye!=copied)throw new IllegalStateException("Eye copy order");
         if(copy!=null)copy.copy(eye,targets[eye],width,height);copied++;
     }
-    public void publish() throws Throwable {check();if(!restored||copied!=2)throw new IllegalStateException("Incomplete output pair");gl.mirrorPair(targets[0],targets[1],width,height,saved);published=true;}
+    public void publish() throws Throwable {
+        check();if(!restored||copied!=2)throw new IllegalStateException("Incomplete output pair");
+        if(singleEye)gl.mirrorEye(targets[0],width,height,saved);else gl.mirrorPair(targets[0],targets[1],width,height,saved);
+        published=true;
+    }
     private void release() {for(int i=0;i<2;i++){if(targets[i]!=0)gl.delete(targets[i]);targets[i]=0;}width=height=0;}
     public void close() {check();if(active)throw new IllegalStateException("Close during pair");release();}
 }

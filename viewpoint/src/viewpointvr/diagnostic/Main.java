@@ -18,7 +18,7 @@ public final class Main {
     /** Called by ZombieBuddy in the user's game only. Never invoked by offline tests. */
     public static synchronized void main(String[] args) {
         if(attempted) return; attempted=true;
-        System.out.println("[Project Viewpoint VR] Starting 0.11.0 hybrid rig prototype; start SteamVR before XR");
+        System.out.println("[Project Viewpoint VR] Starting 0.11.2 single-eye spectator mirror; start SteamVR before XR");
         try {
             if(zombie.network.GameClient.client || zombie.network.GameServer.server) throw new IllegalStateException("Single player only");
             Class<?> drawer=Class.forName("viewpoint.SceneDrawer",false,Main.class.getClassLoader());
@@ -96,6 +96,9 @@ public final class Main {
     public static void diagnosticEvent(String kind,String event,double value){ControllerDiagnostic.event(kind,event,value);}
     public static String controllers(double value){ControllerDiagnostic.cancel("Controller mode changed");viewpointvr.input.InputBridge.configure((int)value);return "Controllers: "+(int)value;}
     public static String motionMelee(double mode){viewpointvr.melee.SwingInput.configure((int)mode);return viewpointvr.melee.SwingInput.status;}
+    public static String motionFeedback(){return viewpointvr.melee.SwingInput.feedback();}
+    public static boolean gamepadAvailable(){return viewpointvr.input.ControllerBridge.available();}
+    public static void rearmGamepad(){viewpointvr.input.ControllerBridge.invalidateMapping();viewpointvr.melee.SwingInput.reset();}
     public static String gameplay(){ControllerDiagnostic.cancel("VR gameplay requested");viewpointvr.input.InputBridge.configure(3);return mode("XR_TRACKED");}
     public static String mode(String name){ControllerDiagnostic.cancel("Renderer mode changed");if(!name.equals("XR_TRACKED"))viewpointvr.input.InputBridge.configure(0);return runtime==null?status:runtime.mode(name);}
     public static String recenter(){return runtime==null?status:runtime.recenter();}

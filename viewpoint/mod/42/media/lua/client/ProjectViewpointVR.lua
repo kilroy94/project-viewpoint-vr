@@ -6,6 +6,46 @@ require "ISUI/ISScrollingListBox"
 
 local panel = nil
 local previous = nil
+local gamepadMessage = ""
+local function assignVRGamepad()
+    if not ProjectViewpointVR or not ProjectViewpointVR.gamepadAvailable() then
+        return "Enable VR gameplay with tracked controllers first."
+    end
+    local id = 15
+    if not isControllerConnected(id) then return "VR gamepad is not connected yet."
+    end
+    local player = getSpecificPlayer(0)
+    if not player or not player:isAlive() or getNumActivePlayers() ~= 1 or isClient() then
+        return "Assignment requires one living single-player character."
+    end
+    if player:getJoypadBind() == id then return "VR gamepad already assigned to player 1."
+    end
+    local controller = JoypadState and JoypadState.controllers[id]
+    local data = JoypadState and JoypadState.joypads[1]
+    if not controller or not data then return "Native controller UI is not ready."
+    end
+    if controller.joypad and controller.joypad.player and controller.joypad.player ~= 0 then
+        return "VR gamepad is assigned to another player."
+    end
+    ProjectViewpointVR.rearmGamepad()
+    getCore():setOptionActiveController(id, true)
+    -- Use the native Lua takeover path as well as the Java player assignment.
+    -- This explicit click can replace player 1's existing controller binding.
+    if data.controller and data.controller ~= controller then data.controller:clearJoypad() end
+    data.focus = nil
+    data.lastfocus = nil
+    JoypadState.players[1] = data
+    data:setController(controller)
+    data:setActive(true)
+    data.player = 0
+    setPlayerJoypad(0, id, player, nil, false)
+    createPlayerData(0)
+    if getPlayerInventory(0) then getPlayerInventory(0):setController(id) end
+    if getPlayerLoot(0) then getPlayerLoot(0):setController(id) end
+    if player:getJoypadBind() ~= id then return "Native assignment did not complete; check console."
+    end
+    return "VR gamepad assigned. Release sticks/triggers, then test."
+end
 local function drawStatus()
     if not ProjectViewpointVR then return end
     local text = ProjectViewpointVR.status()
@@ -94,7 +134,7 @@ local function controls()
         savedScale=ProjectViewpointVR.savedWorldScale()
     end
     if panel then panel:removeFromUIManager() end
-    panel=ISPanel:new(16,112,410,262)
+    panel=ISPanel:new(16,112,410,336)
     panel:initialise()
     panel.moveWithMouse=true
     panel:addToUIManager()
@@ -147,6 +187,17 @@ local function controls()
     play:initialise();panel:addChild(play)
     local melee=ISComboBox:new(6,232,398,24,nil,function(_,box) if ProjectViewpointVR then ProjectViewpointVR.motionMelee(box.selected-1) end end)
     melee:initialise();melee:addOption("Motion melee: Off (native trigger)");melee:addOption("Motion melee: Diagnostics (no attacks)");melee:addOption("Motion melee: Hold right trigger + swing (native attacks)");melee.selected=1;panel:addChild(melee)
+    local assign=ISButton:new(6,264,398,24,"Assign VR gamepad to player 1",nil,function()
+        local ok,result=pcall(assignVRGamepad)
+        gamepadMessage=ok and result or "VR assignment failed; see console."
+        print("[Project Viewpoint VR Gamepad] "..tostring(result))
+    end)
+    assign:initialise();panel:addChild(assign)
+    function panel:prerender()
+        ISPanel.prerender(self)
+        if ProjectViewpointVR then self:drawText(ProjectViewpointVR.motionFeedback(),6,292,0.1,0.9,1,1,UIFont.Small) end
+        self:drawText(gamepadMessage,6,312,1,1,1,1,UIFont.Small)
+    end
     local testButton=ISButton:new(6,168,260,24,"Open controller diagnostic",nil,function() if ProjectViewpointVR then openDiagnostic() end end)
     testButton:initialise();panel:addChild(testButton)
     local stopTest=ISButton:new(272,168,132,24,"Stop diagnostic",nil,function() if ProjectViewpointVR then ProjectViewpointVR.diagnosticStop() end end)

@@ -92,24 +92,30 @@ public final class LwjglGraphics implements CaptureOutput.Graphics {
         } finally { state.restore().restore(); }
     }
     public void mirrorPair(int left,int right,int width,int height,ViewpointBackend.SavedOutput destination) throws Throwable {
-        // Letterbox each eye to preserve its aspect ratio inside one desktop half.
+        mirror(left,right,width,height,destination,false);
+    }
+    public void mirrorEye(int eye,int width,int height,ViewpointBackend.SavedOutput destination) throws Throwable {
+        mirror(eye,eye,width,height,destination,true);
+    }
+    private void mirror(int left,int right,int width,int height,ViewpointBackend.SavedOutput destination,boolean singleEye) throws Throwable {
+        // Preserve eye aspect inside the whole viewport or each diagnostic half.
         var state=save();
         try {
             glBindFramebuffer(GL_DRAW_FRAMEBUFFER,destination.drawFbo());
             glDisable(GL_SCISSOR_TEST);glDisable(GL_FRAMEBUFFER_SRGB);glColorMask(true,true,true,true);
             glEnable(GL_SCISSOR_TEST);glScissor(destination.x(),destination.y(),destination.viewport().width(),destination.viewport().height());
             glClearColor(0,0,0,1);glClear(GL_COLOR_BUFFER_BIT);glDisable(GL_SCISSOR_TEST);
-            int half=destination.viewport().width()/2;
-            for(int eye=0;eye<2;eye++) {
+            int count=singleEye?1:2,half=destination.viewport().width()/count;
+            for(int eye=0;eye<count;eye++) {
                 int target=eye==0?left:right;owned(target);
-                int slot=eye==0?half:destination.viewport().width()-half;
+                int slot=eye==count-1?destination.viewport().width()-eye*half:half;
                 float scale=Math.min((float)slot/width,(float)destination.viewport().height()/height);
                 int w=Math.max(1,Math.round(width*scale)),h=Math.max(1,Math.round(height*scale));
                 int x=destination.x()+eye*half+(slot-w)/2,y=destination.y()+(destination.viewport().height()-h)/2;
                 glBindFramebuffer(GL_READ_FRAMEBUFFER,target);glReadBuffer(GL_COLOR_ATTACHMENT0);
                 glBlitFramebuffer(0,0,width,height,x,y,x+w,y+h,GL_COLOR_BUFFER_BIT,GL_LINEAR);
             }
-            check("stereo mirror");
+            check(singleEye?"spectator mirror":"stereo mirror");
         } finally {state.restore().restore();}
     }
     public int texture(int target) {owned(target);return textures.get(target);}

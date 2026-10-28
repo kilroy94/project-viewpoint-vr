@@ -85,6 +85,7 @@ public final class GpuOutputTest {
             }
             check(!glIsFramebuffer(pairIds[1]),"Live close retires eye");
             check(glGetError()==GL_NO_ERROR,"No final GL errors");
+            SpectatorGpuTest.run();
             UiGpuTest.run();
             RayGpuTest.run();
             glDeleteTextures(texture);glDeleteBuffers(pack);glDeleteBuffers(unpack);

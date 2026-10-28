@@ -42,7 +42,7 @@ public final class NativeInput implements InputBridge.Native {
   boolean released=InputBridge.mode==3?InputBridge.uiMode:!captured.getBoolean(null);
   InputBridge.padReady=valid&&!released&&!modal&&!menu&&!paused&&InputBridge.gameplay();
   if(previousPadReady&&!InputBridge.padReady)ControllerBridge.invalidateMapping();previousPadReady=InputBridge.padReady;
-  BodyTracking.status=InputBridge.mode!=3?"gameplay Off":!InputBridge.gameplay()?"waiting for tracked world":!hmd?"head pose stale":!BodyTracking.xrFocused?"XR not focused; close SteamVR dashboard":!valid?"use first person, on foot, single player":paused?"paused":IsoPlayer.players[0].isBlockMovement()?"native movement blocked":"active (physical steps independent of mouse/pad assignment)";
+  BodyTracking.status=InputBridge.mode!=3?"gameplay Off":!InputBridge.gameplay()?"waiting for tracked world":!hmd?"head pose stale":!BodyTracking.xrFocused?"XR not focused; check SteamVR input routing/dashboard":!valid?"use first person, on foot, single player":paused?"paused":IsoPlayer.players[0].isBlockMovement()?"native movement blocked":"active (physical steps independent of mouse/pad assignment)";
  }
  public void mouse()throws Throwable{
   refreshGameplay();
@@ -79,14 +79,14 @@ public final class NativeInput implements InputBridge.Native {
  }
  public void beforeMovement(Object player)throws Throwable{
   if(player!=IsoPlayer.players[0])return;
-  refreshGameplay();var p=(IsoPlayer)player;var h=BodyTracking.current();lastRoom=RoomMotion.Step.NONE;RoomMotion.Step requested=RoomMotion.Step.NONE;
+  refreshGameplay();var p=(IsoPlayer)player;var h=BodyTracking.current();lastRoom=RoomMotion.Step.NONE;RoomMotion.Step requested=RoomMotion.Step.NONE;String roomResult="tracking/native movement gated";
   if(h!=null&&!p.isBlockMovement()){
-   requested=RoomMotion.request(h,yaw.getFloat(null));lastRoom=NativeRoomMotion.move(p,requested);
+   requested=RoomMotion.request(h,yaw.getFloat(null));lastRoom=NativeRoomMotion.move(p,requested);roomResult=NativeRoomMotion.status;
    BodyTracking.consume(lastRoom.x(),lastRoom.y(),yaw.getFloat(null),h.scale());
   }
   float accepted=(float)Math.hypot(lastRoom.x(),lastRoom.y());if(accepted>0){roomDistance+=accepted;roomTicks++;}
   long now=System.nanoTime();if(InputBridge.mode==3&&now-lastBodyLog>2_000_000_000L){lastBodyLog=now;
-   System.out.println("[Project Viewpoint VR Body] "+BodyTracking.status+" desktopFocus="+focused()+" mouseCaptured="+captured.getBoolean(null)+" ui="+InputBridge.uiMode+" headOffset="+(h==null?"missing":h.x()+","+h.z())+" actor="+p.getX()+","+p.getY()+" nativePad="+p.getJoypadBind()+" requested="+requested.x()+","+requested.y()+" physicalMove="+lastRoom.x()+","+lastRoom.y()+" windowDistance="+roomDistance+" movedTicks="+roomTicks);roomDistance=0;roomTicks=0;
+   System.out.println("[Project Viewpoint VR Body] "+BodyTracking.status+" desktopFocus="+focused()+" mouseCaptured="+captured.getBoolean(null)+" ui="+InputBridge.uiMode+" headOffset="+(h==null?"missing":h.x()+","+h.z())+" actor="+p.getX()+","+p.getY()+" nativePad="+p.getJoypadBind()+" requested="+requested.x()+","+requested.y()+" physicalMove="+lastRoom.x()+","+lastRoom.y()+" roomResult="+roomResult+" windowDistance="+roomDistance+" movedTicks="+roomTicks);roomDistance=0;roomTicks=0;
   }
  }
  public void move(Object player,Object vector)throws Throwable{

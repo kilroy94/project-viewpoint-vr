@@ -80,6 +80,15 @@ public final class InputIntegration {
   actorX=actor.x;actorY=actor.y;BodyTracking.xrFocused=false;bodyAdapter.beforeMovement(actor);check(actor.x==actorX&&actor.y==actorY&&BodyTracking.status.contains("XR not focused"),"XR focus loss blocks physical movement and reports cause");
   BodyTracking.xrFocused=true;zombie.GameTime.paused=true;bodyAdapter.beforeMovement(actor);check(actor.x==actorX&&actor.y==actorY,"paused simulation cannot move body");zombie.GameTime.paused=false;
   BodyTracking.head(.3f,-.2f,0,0,1);viewpoint.FP.cursorMode=false;actor.nx=actor.x+.2f;actor.ny=actor.y+.1f;bodyAdapter.beforeMovement(actor);near(actor.nx-actor.x,.2f,"native stick movement pending X preserved");near(actor.ny-actor.y,.1f,"native stick movement pending Y preserved");near(actor.lx,actor.x,"native collision rollback X retains completed room move");near(actor.ly,actor.y,"native collision rollback Y retains completed room move");
+  actor.x=actor.nx=actor.lx=.5f;actor.y=actor.ny=actor.ly=.5f;actor.current=new zombie.iso.IsoGridSquare(0,0);
+  zombie.iso.IsoGridSquare.selfQueries=zombie.iso.IsoGridSquare.boundaryQueries=0;
+  var step=NativeRoomMotion.move(actor,new RoomMotion.Step(.1f,0));near(step.x(),.1f,"within-tile step accepted despite blocked self matrix bit");
+  check(zombie.iso.IsoGridSquare.selfQueries==0,"adjacency query never used for within-tile displacement");
+  actor.x=actor.nx=actor.lx=.95f;zombie.iso.IsoGridSquare.blocked=true;
+  step=NativeRoomMotion.move(actor,new RoomMotion.Step(.1f,0));check(step.equals(RoomMotion.Step.NONE)&&actor.x==.95f,"blocked adjacent tile cannot be entered");
+  check(zombie.iso.IsoGridSquare.boundaryQueries==1&&NativeRoomMotion.status.equals("tile boundary blocked"),"boundary rejection logged");
+  zombie.iso.IsoGridSquare.blocked=false;step=NativeRoomMotion.move(actor,new RoomMotion.Step(.1f,0));check(step.x()>.09f&&actor.current.x==1,"open boundary crossed and square updated");
+  zombie.iso.IsoGridSquare.floor=false;actorX=actor.x;step=NativeRoomMotion.move(actor,new RoomMotion.Step(.1f,0));check(step.equals(RoomMotion.Step.NONE)&&actor.x==actorX,"unloaded/unsupported floor still rejected");zombie.iso.IsoGridSquare.floor=true;
   InputBridge.configure(0);near(BodyTracking.yaw(.7f),.7f,"Off restores native body heading immediately");
   BodyTracking.clear();
   InputBridge.install(null);InputBridge.clear();InputBridge.configure(0);

@@ -8,9 +8,15 @@ The user confirmed thumbstick walking, but the 0.10.0 body-follow implementation
 
 Gameplay mode now includes tracked arms and held items. Motion melee is explicitly Off / Diagnostics / Live, starts Off, and requires the owned virtual pad assigned for Live. Holding RT arms a gesture; a deliberate right-hand swing generates a native RT pulse while native LT ready/aim and left-stick movement remain available. This is animation-timed native combat, not physical weapon-contact damage.
 
+## Accessing the controls panel in first person / VR
+
+Opening the inventory alone does not release Viewpoint's mouse capture. In the installed user configuration, **press the middle mouse button (click the wheel / MOUSE3)** to toggle the free cursor; click it again to return to mouse look. In VR gameplay with focused controller tracking, **press the right thumbstick down (R3)** for the same toggle. This XR-side shortcut works before the virtual gamepad is assigned. With the cursor free, use the desktop mouse or aim the right controller at the UI and use its trigger to click. The Project Viewpoint VR panel is on the left; its **Assign VR gamepad to player 1** button is below the motion-melee selector. Return to gameplay after assignment and release the controls to rearm.
+
+The middle-button binding is Viewpoint's remappable `keys.cursor`; the current local setting was read as `MOUSE3`. A user who remaps that native action must use their chosen binding. Inventory windows are not treated as modal dialogs that automatically free the cursor.
+
 ## Gameplay mode
 
-**VR gameplay (tracked + native gamepad)** selects XR tracked and controller mode 3 together. SteamVR must already be running. Enable/assign **Viewpoint VR Gamepad**, native ID 15, through Zomboid's controller options. The bridge registers only when XR input is available and that slot is empty; it does not install a driver or rewrite the physical controller registry. Existing device assignments are not taken over. Native Viewpoint controller switching may activate an enabled pad; status reports actual player binding. Renderer/controller activation is not persisted.
+**VR gameplay (tracked + native gamepad)** selects XR tracked and controller mode 3 together. SteamVR must already be running. In 0.11.1, click **Assign VR gamepad to player 1** in our panel to enable and bind the owned native ID-15 controller through Zomboid's takeover path. This explicit action may replace player 1's previous pad binding. Other devices/players are preserved. The native controller options are an alternative when the device appears there. The bridge registers only when XR input is available and that slot is empty; it does not install a driver or rewrite the physical controller registry. Registration alone never changes an existing player assignment; the panel button explicitly requests takeover of player 1. Native Viewpoint controller switching may activate an enabled pad; status reports actual player binding. Renderer/controller activation is not persisted.
 
 | Frame control | Gameplay effect |
 |---|---|

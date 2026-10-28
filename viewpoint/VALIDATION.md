@@ -1,5 +1,41 @@
 # Viewpoint baseline validation
 
+## Single-eye spectator mirror: 0.11.2 (2026-10-28)
+
+The user selected an existing-eye first-person mirror and asked about spectator UI. The XR pipeline now selects left-eye desktop presentation only; both eye rendering/copy callbacks and the OpenXR projection/UI layers are unchanged. The output helper fits one eye into the desktop viewport with aspect-preserving bars. Default Desktop stereo calls reset the selection to the prior side-by-side presentation. UI capture still blends each native layer once into the desktop and separately assembles the headset UI texture. No third world camera/render, new input routing or new runtime connection probe was added.
+
+A standalone hidden-context integration test checks distinct red/blue copy sources, exactly one copy per eye, left-eye world/letterbox output, borrowed read/draw FBOs and nonzero viewport/state restoration, desktop-size UI composited once, separate transparent headset UI contents and recovery of diagnostic stereo presentation. Full Build.ps1 passed in `f94d1076ca0942daafca5d8bb29adcf7`. Spectator mirror + UI GPU: 68 checks passed; no runtime/game launched. Existing hidden GL suites passed 59 UI / 32 output / 15 ray checks; all existing core/input/rig/copied-class suites and three initialization audits passed. The extracted packaged JAR passed the intentionally missing-runtime smoke test without connecting to SteamVR. Package CRC, version/assets, fixture/proprietary exclusions, personal-path checks and byte-for-byte correspondence of all 124 production classes passed. ZIP SHA-256: `626e603af8bfbb69d5a8992dcd6d9d50f70e026c0a50849a92c35202b58eba78`. No user-run spectator/headset result is claimed yet.
+
+## User-run 0.11.1: OpenXR startup freeze recovered (2026-10-28)
+
+The user reports a crash while entering Viewpoint first person after enabling XR tracked. The console stops during OpenXR initialization before runtime/session creation. The matching SteamVR XR client repeatedly times out on its namespace connection; the still-running original server had logged namespace-listener shutdown at exactly the time of the earlier diagnostic probe's failed connection. That probe may have triggered the broken runtime state. No relevant Java exception, JVM fatal-error report or Windows Application crash event was found, and the user subsequently confirmed a freeze and successful recovery after a full SteamVR restart.
+
+The full user-run SteamVR restart/reconnection restored XR startup. No new mod build, runtime settings change, game/SteamVR launch or process termination was performed in this investigation. Future diagnosis must avoid the live Background probe. See [FOCUS.md](FOCUS.md) for the evidence and recovery test. The physical-step, assignment-button and combat changes still await in-game validation.
+
+## User-run 0.11.1 after recovery: movement path active (2026-10-28)
+
+The new console confirms 0.11.1 and focused/state-5 XR. Thirty Body windows record accepted physical movement, including windows with 43 and 84 moved ticks. This is stronger evidence of the corrected within-tile path than the old sparse one-tick windows, but the user has not yet confirmed the visual/physical movement quality or collision behavior. Later requests are blocked by destination floor/solid guards; do not infer that these are either correct walls or a new bug without the user's location/context.
+
+The panel assignment button was clicked before XR/controller registration and correctly deferred. ID 15 registered later; no subsequent assignment or recognized swing appears in this run. Retrying the assignment after hands track is the next test. No native combat success is claimed.
+
+## Physical-step correction and explicit controls: 0.11.1 (2026-10-28)
+
+The user reports physical steps still fail and cannot find the registered VR controller in native options. The latest user-run 0.11.0 log records two `diagnostic swing` events (frames 109893 and 110527): gesture recognition worked without native attacks. Focused Body windows continue to request movement with frequent zero acceptance. Do not treat earlier sparse accepted displacement as successful physical locomotion.
+
+Installed copied binary inspection found that square collision initialization sets all 27 matrix bits, neighbor recalculation skips self, and native movement tests adjacency only when changing square. The adapter incorrectly queried self for within-tile steps. 0.11.1 skips only that self adjacency query and retains capsule/floor/solid/real-boundary checks. The fixture now models a blocked self entry and tests same-tile movement, blocked/open transitions and missing support. Movement logs include the collision result reason.
+
+The panel now offers explicit native takeover of player 1 by the owned virtual controller, guarded against unavailable/retiring/physical replacements and other-player ownership. It includes native Lua controller/player/inventory routing; registration remains non-assigning. A persistent diagnostic swing count survives temporary blocked status. The Lua controls compile but their native UI/takeover behavior has not been executed by automated tests or confirmed in-game. No new headset success is claimed.
+
+Final full Build.ps1 passed in `a31f286438a440579bdda70cb93a566d`: 74 native-input integration checks, 24 gamepad lifecycle checks and 15 motion/native hybrid checks; the previous camera, controller, rig, turning, settings, capture and renderer suites also passed. Copied-class verification/retransformation and 30 activation/rollback checks passed, with all three no-game/mod-initialization audits. Hidden GL passed 59 UI / 32 output / 15 ray checks, and the deliberately missing OpenXR runtime failed as expected without launching SteamVR. Lua controls compile. A workspace-only countercheck with the old movement logic (retaining only the new diagnostic field for linkage) rejects physical displacement against the blocked-self fixture, establishing regression coverage.
+
+No game/mod entry point, installer or SteamVR was launched; no game/Workshop/Zomboid user-data files were written. Package `ProjectViewpointVR-0.11.1.zip` contains 124 production classes with byte-for-byte correspondence to the tested output. The extracted bundled JAR passed the missing-runtime smoke test; CRC, version/UI assets, fixture/proprietary exclusions and personal-path checks passed. ZIP SHA-256: `e9a83a1d538cf1152cb73984e547ef3dd9b94b872216a3355d52413061622c39`. The explicit native Lua takeover button still requires manual validation.
+
+## User-run 0.11.0: input focus and tracked hands confirmed (2026-10-28)
+
+The automatic-theater override alone did not restore XR focus. The user confirmed the immersive scene and no visible dashboard, then found SteamVR's per-application **Use Gamepad Inputs On**. Switching it **Off** immediately restored hands, confirmed visually by the user. The live console then records state 5 at frame 74892, both Frame interaction profiles, left/right tracking, virtual pad ID-15 registration and eleven tracked-rig captures. No new build or runtime-code change was required.
+
+Physical-body status became active and at least two diagnostic windows recorded accepted displacement (0.12035117 and 0.049122646 scene units, one tick each). Other windows requested movement without acceptance. Physical movement/collision quality remains for user assessment. Native controller assignment remained -1, and focused status reports motion attacks require ID 15. No Melee event or successful combat result was observed. See [FOCUS.md](FOCUS.md) for the routing correction and remaining tests.
+
 ## User-run 0.11.0 failure: focus investigation (2026-10-28)
 
 The user reports physical movement, arms and swings still do not work. The latest log confirms 0.11.0, successful profile suggestions and stereo submission, but no FOCUSED/state 5 event, no controller-profile sampling, 122 blocked Body windows, no Rig/Melee events and no owned-pad registration. Native pad 0 remains a separate input path. The user already connected with Stream VR Without Game and launched Zomboid on the PC.

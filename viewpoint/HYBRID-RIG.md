@@ -1,6 +1,14 @@
-# Hybrid VR rig: 0.11.0
+# Hybrid VR rig: 0.11.1
 
 The user confirmed thumbstick walking in 0.10.0, but physical steps did not move the actor. The recorded session selected the Frame interaction profile for both hands and received stick/trigger input. It never logged an active body-follow pass or an assigned ID-15 virtual pad; native Viewpoint later activated pad 0. This does not establish which gate blocked every attempted physical step. It does establish that rendering/controller acquisition alone did not provide working room-scale gameplay.
+
+## 0.11.1 corrections and live evidence
+
+The user confirms tracked hands after turning SteamVR **Use Gamepad Inputs Off**, but reports physical steps still fail. The 0.11.0 console records two recognized diagnostic swings; native attacks remain unverified. The registered virtual controller was not found by the user in the native settings UI, so 0.11.1 adds an explicit assignment button in our panel rather than relying on that discovery path.
+
+The installed square collision matrix starts with all 27 bits set, and neighbor recalculation explicitly skips the zero-offset/self entry. The previous adapter queried that self entry on every within-tile physical step, incorrectly rejecting ordinary motion. Native `IsoMovingObject.DoCollide` checks adjacency only when the square changes. The corrected adapter likewise queries adjacency only for a tile transition, while keeping the capsule collision, loaded-floor, solid-tile and distance guards for every requested step. This is a concrete static mismatch, backed by a fixture with a blocked self entry; it still needs a physical-headset retest.
+
+The panel assignment button validates the exact owned registry object, a living single-player character and initialized native Lua controller data. Its user-triggered action enables ID 15 and follows the native Lua/Java player-takeover and inventory-routing path. It never creates a character or silently assigns during registration. Native menu visibility and this button's actual in-game behavior remain unvalidated. Persistent diagnostic recognition counts are displayed separately from the transient motion gating status.
 
 ## Device tracking and native locomotion
 

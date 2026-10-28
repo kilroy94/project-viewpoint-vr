@@ -2,6 +2,16 @@
 
 Target: exact-pinned Viewpoint 0.1.6.1 and Zomboid 42.21.0. Decompiled classes informed call-site selection only; no dependency source or binaries are distributed. The current update preserves the audited UI capture call sites and adapts mouse pinning to MouseButtons.pin. ImGui draw data is consumed synchronously before native freeDrawData, retaining the upstream memory-leak fix. Crash-report windows use the same captured ImGui path and block locomotion while visible. The new setup wizard uses the same ImGuiFrame draw-data path as settings and is captured by that hook. Older Viewpoint binaries are no longer accepted.
 
+## Single-eye desktop spectator mirror (0.11.2)
+
+XR fixed/tracked modes now present the already-rendered left-eye world image across the desktop viewport, preserving its aspect ratio with black bars as needed. Both world eyes are still rendered/copied exactly once into their existing XR targets. There is no third camera, world redraw, eye blending, independent spectator control or head-motion smoothing. The separate Desktop stereo diagnostic mode keeps its two-eye layout.
+
+Vanilla UI, inventory/loot panels, supported Viewpoint overlays/settings and this mod's controls still composite once over the desktop at normal desktop coordinates and resolution. They are not scaled into the eye image, doubled, cropped with the world or pasted into either XR eye. The spectator can see the menus/actions exposed on the desktop; desktop input remains available. Existing cursor capture/release rules still apply.
+
+The headset receives the same separately captured transparent UI quad as before, using the previous completed UI frame. The single-eye world mirror does not contain that runtime-composited floating panel. The spectator sees its flat desktop counterpart, not the headset's spatial placement. The OS cursor is visible according to normal desktop capture/focus; the custom headset pointer marker remains governed by the existing UI capture rules. No new pointer-marker or third-party UI coverage is claimed.
+
+Hidden GL integration checks cover distinct eye-copy sources, one-eye desktop presentation/letterboxing, nonzero output origin and borrowed GL-state restoration, normal desktop-size premultiplied UI blended exactly once, a separate transparent headset UI texture and return to side-by-side diagnostics. A user-run Frame/desktop check is still required.
+
 ## Capture boundaries
 
 - Lua `OnPreUIDraw` and `OnPostUIDraw` queue render-thread markers around ordinary Zomboid UI and this mod's controls/status. This avoids assuming the completed vanilla UI FBO includes all later overlays.

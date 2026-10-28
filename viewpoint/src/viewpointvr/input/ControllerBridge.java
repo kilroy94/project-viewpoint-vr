@@ -26,6 +26,8 @@ public final class ControllerBridge {
     private static boolean usable(ControllerState s,long now){return s.fresh(now)&&(s.left().tracked()||s.right().tracked());}
     public static synchronized boolean constructing() { return constructing; }
     public static synchronized boolean owns(int id) { return virtual!=null && id==SLOT; }
+    /** Called by the game-thread Lua assignment button; never claims a physical pad. */
+    public static synchronized boolean available() {return installed&&mode==2&&virtual!=null&&!retiring&&!detaching&&GameWindow.GameInput.getController(SLOT)==virtual;}
     public static synchronized void configure(int value) {
         int next=value==2?2:0;
         if(mode!=next) { mapper.invalidate(); mode=next; System.out.println("[Project Viewpoint VR Gamepad] mode="+mode); }
