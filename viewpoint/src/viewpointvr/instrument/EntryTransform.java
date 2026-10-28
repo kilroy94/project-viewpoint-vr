@@ -55,17 +55,12 @@ public final class EntryTransform {
                 if (!name.equals("render") || !descriptor.equals("()V") || (access & ACC_STATIC) != 0) return output;
                 count[1]++;
                 return new MethodVisitor(ASM9, output) {
-                    @Override public void visitMethodInsn(int opcode, String owner, String method,
-                                                          String desc, boolean itf) {
-                        if (owner.equals(TARGET) && method.equals("drawFrame") && desc.equals("()V")
-                                && opcode == INVOKEVIRTUAL && !itf) {
-                            count[2]++;
-                            // Receiver is already on the stack. Resolve private handle in the caller's
-                            // own lookup context; no reflective access or added fields/methods required.
-                            super.visitLdcInsn(new Handle(H_INVOKEVIRTUAL, TARGET, "drawFrame", "()V", false));
-                            super.visitMethodInsn(INVOKESTATIC, "viewpointvr/FrameBoundary", "draw",
-                                    "(Ljava/lang/Object;Ljava/lang/invoke/MethodHandle;)V", false);
-                        } else super.visitMethodInsn(opcode, owner, method, desc, itf);
+                    @Override public void visitInvokeDynamicInsn(String method,String desc,Handle bootstrap,Object... args){
+                        if(method.equals("run")&&desc.equals("(Lviewpoint/SceneDrawer;)Ljava/lang/Runnable;")&&args.length==3
+                                &&args[1] instanceof Handle body&&body.getOwner().equals(TARGET)&&body.getName().equals("drawFrame")&&body.getDesc().equals("()V")&&body.getTag()==H_INVOKEVIRTUAL){
+                            count[2]++;super.visitLdcInsn(body);
+                            super.visitMethodInsn(INVOKESTATIC,"viewpointvr/FrameBoundary","runnable","(Ljava/lang/Object;Ljava/lang/invoke/MethodHandle;)Ljava/lang/Runnable;",false);
+                        }else super.visitInvokeDynamicInsn(method,desc,bootstrap,args);
                     }
                 };
             }

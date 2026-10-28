@@ -1,0 +1,1 @@
+package viewpoint.platform; public final class LiveSettings { public static final class Toggle {public boolean value;public boolean get(){return value;}} }

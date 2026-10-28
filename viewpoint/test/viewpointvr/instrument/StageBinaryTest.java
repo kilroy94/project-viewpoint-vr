@@ -47,8 +47,8 @@ public final class StageBinaryTest {
         try {
             instrumentation.retransformClasses(targets);
             instrumentation.retransformClasses(targets);
-            if(!failures.isEmpty() || accepted[0]!=6) throw new AssertionError("Stage retransformation: "+failures);
+            if(!failures.isEmpty() || accepted[0]!=2*targets.length) throw new AssertionError("Stage retransformation: "+failures);
         } finally { instrumentation.removeTransformer(hook); instrumentation.retransformClasses(targets); }
-        System.out.println("Native stages: backend metadata plus 3 copied classes verified/retransformed twice; no initialization");
+        System.out.println("Native stages: backend metadata plus 5 copied classes verified/retransformed twice; no initialization");
     }
 }

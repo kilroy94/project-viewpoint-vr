@@ -1,5 +1,5 @@
 package viewpoint.core;
-public final class Frame {
+public final class Frame {public final CameraShot cameraShot=new CameraShot();
  public long number=7,takenNanos=55; public final viewpoint.render.SceneData scene=new viewpoint.render.SceneData();
  public float eyeX=3,eyeY=2,eyeZ=4,viewYaw=.3f,viewPitch=.2f,eyeLean=.2f;
  public final CameraSquares cameraSquares=new CameraSquares();

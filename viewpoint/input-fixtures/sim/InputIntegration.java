@@ -24,7 +24,7 @@ public final class InputIntegration {
  static void fresh()throws Throwable{
   InputBridge.clear();InputBridge.configure(2);InputBridge.turning(1,30,90);InputBridge.install(new NativeInput(InputIntegration.class.getClassLoader()));
   physical=false;physicalWheel=0;Mouse.buttonDownStates[0]=Mouse.buttonPrevStates[0]=false;
-  Look.captured=false;Look.yaw=0;SettingsWindow.shown=false;viewpoint.platform.Onboarding.shown=false;
+  Look.captured=false;Look.yaw=0;SettingsWindow.shown=false;viewpoint.platform.Onboarding.shown=false;viewpoint.platform.CrashReport.shown=false;
   zombie.ui.UIManager.modal=false;zombie.GameTime.paused=false;org.lwjgl.glfw.GLFW.focused=true;
   IsoPlayer.players[0].blocked=false;IsoPlayer.players[0].dead=false;tick(NEUTRAL);
  }
@@ -65,6 +65,8 @@ public final class InputIntegration {
   fresh();SettingsWindow.shown=true;tick(NEUTRAL);sample(NEUTRAL,hand(.5f,.5f,0,0,1));InputBridge.mouse(mouse);InputBridge.configure(0);InputBridge.imgui(ui);check(ImGui.io.wheel==0,"Off discards queued scroll");InputBridge.configure(2);tick(NEUTRAL);check(ImGui.io.wheel==0,"reenable cannot replay old scroll");
   fresh();tick(hand(.3f,.4f,1,0,0));InputBridge.clear();InputBridge.mouse(mouse);InputBridge.imgui(ui);check(!Mouse.buttonDownStates[0]&&!ImGui.io.down,"session disconnect releases both UI paths");tick(hand(.3f,.4f,1,0,0));check(!Mouse.buttonDownStates[0],"reconnect held input requires neutral");
   fresh();SettingsWindow.shown=true;tick(NEUTRAL);sample(NEUTRAL,hand(.5f,.5f,0,0,1));InputBridge.mouse(mouse);InputBridge.trackingLost();InputBridge.imgui(ui);check(ImGui.io.wheel==0,"tracking loss between input and drawing discards queued scroll");
+  fresh();viewpoint.platform.CrashReport.shown=true;tick(NEUTRAL);tick(hand(.3f,.4f,1,0,0));check(ImGui.io.down&&!Mouse.buttonDownStates[0],"crash popup routes pointer only to ImGui");
+  Look.captured=true;tick(NEUTRAL);sample(hand(.5f,.5f,0,0,1),hand(.5f,.5f,0,1,0));InputBridge.mouse(mouse);vector.set(0,0);InputBridge.move(IsoPlayer.players[0],vector,move);near(vector.getLength(),0,"crash popup blocks controller movement");near(Look.yaw,0,"crash popup blocks snap turning");
   fresh();int m=nativeMouse,u=nativeUi;tick(NEUTRAL);check(nativeMouse==m+1&&nativeUi==u+1,"native physical callbacks exactly once");
   InputBridge.install(null);InputBridge.clear();InputBridge.configure(0);
   System.out.println("Native input integration: "+checks+" checks passed; authored fixtures only");

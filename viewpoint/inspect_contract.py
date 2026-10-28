@@ -65,12 +65,11 @@ CONTRACTS = [
         "viewpoint/render/ShadowPass.draw:(Lviewpoint/render/FrameContext;)V",
         "viewpoint/render/ModelPass.gbuffer:(Lviewpoint/render/FrameContext;)V",
         "viewpoint/render/FarPass.gbuffer:(Lviewpoint/render/FrameContext;)V"]),
-    ("viewpoint.render.WorldRenderer", "private static void passes();",
-     "()V", [
-        "viewpoint/render/TemporalPass.resolve:(Lviewpoint/render/FrameContext;)I",
-        "viewpoint/render/TemporalPass.remember:(Lviewpoint/render/FrameContext;)V",
-        "viewpoint/render/TemporalPass.present:(Lviewpoint/render/FrameContext;IF)V"]),
-    ("viewpoint.render.WorldRenderer", "public static void finish(viewpoint.render.SceneData);", "(Lviewpoint/render/SceneData;)V", ["passes:()V", "viewpoint/render/ModelPass.endFrame:()V"]),
+    ("viewpoint.render.FrameEnd", "void draw(viewpoint.render.FrameContext);", "(Lviewpoint/render/FrameContext;)V", [
+        "viewpoint/render/TemporalPass.run:(Lviewpoint/render/FrameContext;IZ)I",
+        "viewpoint/render/Rescale.present:(Lviewpoint/render/FrameContext;Lviewpoint/render/TemporalPass;IFF)V",
+        "viewpoint/render/FrameGenPass.capture:(Lviewpoint/render/FrameContext;)V"]),
+    ("viewpoint.render.WorldRenderer", "public static void finish(viewpoint.render.SceneData);", "(Lviewpoint/render/SceneData;)V", ["viewpoint/render/FrameEnd.draw:(Lviewpoint/render/FrameContext;)V", "viewpoint/render/ModelPass.endFrame:()V"]),
 ]
 
 

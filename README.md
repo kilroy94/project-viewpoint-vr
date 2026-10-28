@@ -2,15 +2,15 @@
 
 A new Viewpoint-based VR project for Project Zomboid, forked from the preserved PZ3D VR implementation. Viewpoint is the sole renderer target; useful OpenXR, capture and interaction code will be reused as needed.
 
-**Current milestone: logged in-game controller diagnostic, 0.8.0.** Adds OpenXR controller poses, a right-hand UI ray, trigger clicking, scrolling, and optional walking with configurable snap or smooth turning. Turning preferences and world scale persist across restarts. Renderer and controllers start Off. The user confirmed the 0.6.1 renderer update and UI work; controller behavior has automated simulation/GPU coverage but awaits in-game and physical-controller validation. Physical-headset testing remains deferred.
+**Current milestone: compatibility with Viewpoint 0.1.6.1 and ZombieBuddy 2.3.4, version 0.9.0.** Adds OpenXR controller poses, a right-hand UI ray, trigger clicking, scrolling, and optional walking with configurable snap or smooth turning. Turning preferences and world scale persist across restarts. Renderer and controllers start Off. The user confirmed the 0.6.1 renderer update and UI work; controller behavior has automated simulation/GPU coverage but awaits in-game and physical-controller validation. Physical-headset testing remains deferred.
 
-**Targets Viewpoint 0.1.5a-hotfix.** Development follows the latest available Viewpoint; older versions are no longer supported. Exact binary checks remain in place so an unaudited future update cannot silently run incompatible hooks.
+**Targets Viewpoint 0.1.6.1.** Development follows the latest available Viewpoint; older versions are no longer supported. Exact binary checks remain in place so an unaudited future update cannot silently run incompatible hooks. Turn Viewpoint frame generation Off for stereo/XR. Vendor temporal upscaling is inactive during stereo, and the borrowed eye images use regular perspective projection. See the [compatibility review](viewpoint/COMPATIBILITY.md).
 
 The opt-in [controller diagnostic](viewpoint/DIAGNOSTIC.md) runs against dedicated Zomboid and Viewpoint UI widgets and writes PASS/FAIL/NEEDS VISUAL CHECK text reports. Its first in-game run remains pending.
 
-Start with the [manual installation/capture guide](viewpoint/TESTING.md), [build and tests](viewpoint/README.md), [integration plan](docs/VIEWPOINT-PLAN.md) and [validation record](viewpoint/VALIDATION.md). Target binaries: Viewpoint 0.1.5a-hotfix, Project Zomboid 42.21.0 and ZombieBuddy 2.3.2 (original or the audited B42.21 temporary fix).
+Start with the [manual installation/capture guide](viewpoint/TESTING.md), [build and tests](viewpoint/README.md), [integration plan](docs/VIEWPOINT-PLAN.md) and [validation record](viewpoint/VALIDATION.md). Target binaries: Viewpoint 0.1.6.1, Project Zomboid 42.21.0 and ZombieBuddy 2.3.4.
 
-After manual installation, use the on-screen Off/Desktop/XR fixed/XR tracked controls. Pause/Break alone switches Off; Shift+Pause/Break saves a PNG pair while Off. The generated archive is `viewpoint/dist/ProjectViewpointVR-0.8.0.zip`; this repository does not track generated binaries. See [controller controls and scope](viewpoint/INPUT.md). SteamVR is needed only for its headset modes when SteamVR is your OpenXR runtime.
+After manual installation, use the on-screen Off/Desktop/XR fixed/XR tracked controls. Pause/Break alone switches Off; Shift+Pause/Break saves a PNG pair while Off. The generated archive is `viewpoint/dist/ProjectViewpointVR-0.9.0.zip`; this repository does not track generated binaries. See [controller controls and scope](viewpoint/INPUT.md). SteamVR is needed only for its headset modes when SteamVR is your OpenXR runtime.
 
 ## Inherited reference code
 

@@ -6,8 +6,8 @@ import java.util.*;
 
 public final class BinaryPins {
     public static final String GAME="e1a69eb743ede60b213a0fe7f8b83d4fcab773036d256cc4543a336f3b058a33";
-    public static final String VIEWPOINT="94fedda302ab6c17ba1b38495789e4c9781d52823fb8204214c85402e3cab41f";
-    public static final Set<String> LOADERS=Set.of("6dd95cedce60f03bf8b8cefd0d19eb156230e0d54bffa07de9da5212a06c7be6","dd13e6e06e64be0e832a4f13508c6872de36c9c7b2290023c5884a7f74467283");
+    public static final String VIEWPOINT="096bd37d63cb699ac95e9e7ea5245a1b9b5ff08c5161db35f6733b1d1c42b064";
+    public static final Set<String> LOADERS=Set.of("eb79b9876332010733a8e0d7ce4fe0377846059a9e28859029e2a0fb449f6cf2");
     public static void verify(Path game,Path viewpoint,Path loader) throws Exception {
         check(game,Set.of(GAME)); check(viewpoint,Set.of(VIEWPOINT)); check(loader,LOADERS);
     }

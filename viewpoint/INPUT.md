@@ -1,4 +1,4 @@
-# Controller input (0.8.0)
+# Controller input (0.9.0)
 
 This is an opt-in implementation for the exact supported Viewpoint build. The user confirmed the 0.6.1 renderer and UI, but has no physical headset tester currently. Automated results below do not establish working hardware bindings or comfortable gameplay.
 
@@ -29,7 +29,7 @@ The head-relative ray intersects the same z=-1.5 UI plane and aspect-preserving 
 
 Three exact-pinned call sites extend the existing Hooks/ImGuiFrame transforms, without adding native targets or changing class schema:
 
-- After Controls.pinMouse in Hooks.mouseUpdated, merge the virtual pointer/button into native Mouse state, before SettingsWindow.blockGameMouse and LootMenu.wheel consume it. Maintain physical button history and release virtual holds after loss. No OS cursor movement or synthetic OS input is sent.
+- After MouseButtons.pin in Hooks.mouseUpdated, merge the virtual pointer/button into native Mouse state, before SettingsWindow.blockGameMouse and LootMenu.mouse consume it. Maintain physical button history and release virtual holds after loss. No OS cursor movement or synthetic OS input is sent.
 - Before Controls.moveVector in Hooks.inputMoveVector, overlay a zero native movement vector only. Native Viewpoint conversion supplies body-relative walking; snap turn changes its native yaw.
 - After ImGuiFrame.input and before newFrame, overlay normalized cursor/button/wheel values in that frame's active ImGui context. Physical input runs exactly once. Viewpoint's native settings blocker still prevents game clicks behind its window.
 
@@ -37,7 +37,7 @@ Input requires a focused game window, eligible Viewpoint first-person single-pla
 
 ## Validation and remaining work
 
-ControllerTest exercises panel geometry, click hysteresis, ray misses, neutral rearming, stale/focus/tracking loss, scroll repeat, movement deadzones, diagonal speed limits, snap-turn/menu edges, physical/virtual button merging and bridge invocation order/failures. RayGpuTest checks real cyan pixels for both eye offsets and restores framebuffer, viewport, VAO/program and compatibility GL state. All eleven copied targets are verified/retransformed without game/mod initialization.
+ControllerTest exercises panel geometry, click hysteresis, ray misses, neutral rearming, stale/focus/tracking loss, scroll repeat, movement deadzones, diagonal speed limits, snap-turn/menu edges, physical/virtual button merging and bridge invocation order/failures. RayGpuTest checks real cyan pixels for both eye offsets and restores framebuffer, viewport, VAO/program and compatibility GL state. All thirteen copied targets are verified/retransformed without game/mod initialization.
 
 Physical binding selection, controller orientation, in-game inventory/settings clicks and scrolling, movement direction, snap-turn direction, focus/runtime recovery and comfort remain live acceptance tests. Hand models, inventory grabbing, weapons, melee, vehicles and multiplayer are not implemented. No SteamVR or game launch is part of automated validation.
 
@@ -48,4 +48,4 @@ The standalone `sim.InputIntegration` suite feeds poses and buttons through the 
 
 Coverage includes vanilla and ImGui dragging, pixel mapping at different display sizes, UI routing changes while holding a trigger, physical mouse priority, wheel isolation and single consumption, keyboard movement priority, pause/menu locomotion blocking, focus/tracking/stale-sample loss, Off and session disconnect. The existing deterministic turning tests cover rates and repetition without sleep timing. These are adapter integration tests, not real inventory widgets, a running ImGui context or physical OpenXR devices.
 
-Version 0.7.3 corrects ImGui drag release after controller loss/Off: release uses the last controller point for that frame, then physical input resumes. It also discards queued controller wheel input when the controller target is no longer valid. Version 0.8.0 adds an explicitly armed in-game diagnostic; see [DIAGNOSTIC.md](DIAGNOSTIC.md).
+Version 0.7.3 corrects ImGui drag release after controller loss/Off: release uses the last controller point for that frame, then physical input resumes. It also discards queued controller wheel input when the controller target is no longer valid. Version 0.8.0 added an explicitly armed in-game diagnostic; see [DIAGNOSTIC.md](DIAGNOSTIC.md).

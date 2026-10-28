@@ -26,9 +26,8 @@ public final class EntryFixtureTest {
         new ClassReader(source).accept(new ClassVisitor(ASM9, writer) {
             @Override public MethodVisitor visitMethod(int a, String n, String d, String s, String[] e) {
                 return new MethodVisitor(ASM9, super.visitMethod(a,n,d,s,e)) {
-                    @Override public void visitMethodInsn(int op, String owner, String name, String desc, boolean itf) {
-                        if (name.equals("drawFrame")) super.visitInsn(POP);
-                        else super.visitMethodInsn(op,owner,name,desc,itf);
+                    @Override public void visitInvokeDynamicInsn(String name,String desc,Handle boot,Object... args){
+                        if(name.equals("run")){super.visitInsn(POP);super.visitInsn(ACONST_NULL);}else super.visitInvokeDynamicInsn(name,desc,boot,args);
                     }
                 };
             }
@@ -51,6 +50,8 @@ public final class EntryFixtureTest {
         var cause = new IllegalStateException("native failure"); type.getField("failure").set(failure,cause); render(failure);
         check(caught(failure) == cause && number(failure,"restores") == 1, "Existing native catch/finally preserved");
 
+        Object fatal=type.getConstructor().newInstance();var fatalCause=new AssertionError("native fatal");type.getField("failure").set(fatal,fatalCause);render(fatal);
+        check(caught(fatal)==fatalCause&&number(fatal,"restores")==1,"Guarded method reference preserves Error identity and cleanup");
         AtomicReference<FrameBoundary.NativeDraw> saved = new AtomicReference<>();
         try (var scope = FrameBoundary.register((drawer, original) -> { saved.set(original); original.draw(); })) {
             rejects(() -> FrameBoundary.register((d,o) -> {}));

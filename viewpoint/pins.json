@@ -1,5 +1,20 @@
 {
-  "game": {"version": "42.21.0", "sha256": ["e1a69eb743ede60b213a0fe7f8b83d4fcab773036d256cc4543a336f3b058a33"]},
-  "viewpoint": {"version": "0.1.5a-hotfix", "sha256": ["94fedda302ab6c17ba1b38495789e4c9781d52823fb8204214c85402e3cab41f"]},
-  "zombiebuddy": {"version": "2.3.2 (original or audited B42.21 temporary fix)", "sha256": ["6dd95cedce60f03bf8b8cefd0d19eb156230e0d54bffa07de9da5212a06c7be6", "dd13e6e06e64be0e832a4f13508c6872de36c9c7b2290023c5884a7f74467283"]}
+  "game": {
+    "version": "42.21.0",
+    "sha256": [
+      "e1a69eb743ede60b213a0fe7f8b83d4fcab773036d256cc4543a336f3b058a33"
+    ]
+  },
+  "viewpoint": {
+    "version": "0.1.6.1",
+    "sha256": [
+      "096bd37d63cb699ac95e9e7ea5245a1b9b5ff08c5161db35f6733b1d1c42b064"
+    ]
+  },
+  "zombiebuddy": {
+    "version": "2.3.4",
+    "sha256": [
+      "eb79b9876332010733a8e0d7ce4fe0377846059a9e28859029e2a0fb449f6cf2"
+    ]
+  }
 }

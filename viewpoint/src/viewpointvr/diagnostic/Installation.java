@@ -11,7 +11,7 @@ import viewpointvr.instrument.*;
 /** All-target activation; a failed or incompatible later transformation permanently disarms capture. */
 public final class Installation implements ClassFileTransformer,AutoCloseable {
     public static final List<String> TARGETS=java.util.stream.Stream.concat(java.util.stream.Stream.of(EntryTransform.TARGET,
-            "viewpoint/render/WorldRenderer","viewpoint/render/FarPass","viewpoint/render/TemporalPass"),java.util.stream.Stream.concat(VisibilityTransform.TARGETS.stream(),UiTransform.TARGETS.stream())).toList();
+            "viewpoint/render/WorldRenderer","viewpoint/render/FarPass","viewpoint/render/TemporalPass","viewpoint/render/FrameEnd","viewpoint/render/SkyPass"),java.util.stream.Stream.concat(VisibilityTransform.TARGETS.stream(),UiTransform.TARGETS.stream())).toList();
     private final Instrumentation instrumentation;
     private final ClassLoader loader;
     private final EntryTransform entry;

@@ -1,0 +1,1 @@
+package viewpoint.platform; /** Authored current UI fixture. */ public final class CrashReport {public static boolean shown;}

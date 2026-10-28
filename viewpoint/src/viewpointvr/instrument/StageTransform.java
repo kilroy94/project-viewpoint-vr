@@ -10,7 +10,7 @@ import static net.bytebuddy.jar.asm.Opcodes.*;
 
 /** Schema-preserving split of the pinned renderer's native calls, without copied implementations. */
 public final class StageTransform {
-    public static final List<String> TARGETS = List.of("viewpoint/render/WorldRenderer", "viewpoint/render/FarPass", "viewpoint/render/TemporalPass");
+    public static final List<String> TARGETS = List.of("viewpoint/render/WorldRenderer", "viewpoint/render/FarPass", "viewpoint/render/TemporalPass", "viewpoint/render/FrameEnd", "viewpoint/render/SkyPass");
     private static final String R="viewpoint/render/";
     private static final String PIN=viewpointvr.diagnostic.BinaryPins.VIEWPOINT;
     private static final Handle BOOT = new Handle(H_INVOKESTATIC,"viewpointvr/StageHooks","bootstrap",
@@ -55,12 +55,13 @@ public final class StageTransform {
                         String policy=null; Handle alternate=null;
                         if(name.equals(R+"WorldRenderer")) {
                             if(method.equals("begin")) {
-                                if((m.equals("developer") && owner.equals(name) || owner.equals(R+"PackLinks") && m.equals("follow"))
+                                if((owner.equals(R+"DevReload") && m.equals("frame") || owner.equals(R+"PackLinks") && m.equals("follow"))
                                     || owner.equals(R+"FrameStream") && m.equals("frameStarted")
                                     || owner.equals(R+"FloorBakes") && m.equals("update")
                                     || owner.equals(R+"ShellGround") && m.equals("update")
                                     || owner.equals(R+"PackModels") && m.equals("upload")
-                                    || owner.equals(R+"Meshes") && m.equals("prepare")) policy="once";
+                                    || owner.equals(R+"Meshes") && m.equals("prepare")
+                                    || owner.equals(R+"FarRelief") && m.equals("frame")) policy="once";
                                 if(owner.equals(R+"ModelPass") && m.equals("prepare")) {
                                     policy="model"; alternate=new Handle(H_INVOKEVIRTUAL,owner,"endFrame","()V",false);
                                 }
@@ -71,23 +72,28 @@ public final class StageTransform {
                                 if(owner.equals(name) && m.equals("drawWorld")) policy="world";
                                 if(owner.equals(R+"IrisMode") && m.equals("draw")) policy="false";
                             }
-                            if(owner.equals(name) && m.equals("runPasses")) policy="pass";
+
                             if(method.equals("drawWorld") && (owner.equals(R+"ShadowPass") && m.equals("draw")
-                                    || owner.equals(R+"WeatherMap") && m.equals("draw")
                                     || owner.equals(R+"MousePick") && m.equals("read"))) policy="once";
-                            if(method.equals("finish") || method.equals("passes")) {
+                            if(method.equals("finish")) {
+                                if(owner.equals(R+"FrameGenPass")&&m.equals("midframe"))policy="skip";
                                 if(owner.equals(R+"ModelPass") && m.equals("endFrame")) policy="end";
-                                if(owner.equals(R+"TemporalPass") && m.equals("remember")) policy="skip";
-                                if(owner.equals(R+"PackStages") && m.equals("any")) policy="false";
                             }
                         }
                         if(name.equals(R+"FarPass") && method.equals("prepare")) {
-                            if(owner.equals(R+"FarGpu") && (m.equals("uploadShells")||m.equals("uploadCells"))
+                            if(owner.equals(R+"FarGpu") && m.equals("uploadQueued")
                                 || owner.equals(R+"BandLight") && m.equals("update")
                                 || owner.equals(R+"CellLightPages") && m.equals("update")
                                 || owner.equals(R+"TreeBaker") && m.equals("bake")) policy="once";
                             if(owner.equals(R+"FarShadow") && m.equals("draw")) policy="once";
                         }
+                        if(name.equals(R+"SkyPass")&&method.equals("prepare")&&owner.equals(R+"WeatherMap")&&m.equals("draw"))policy="once";
+                        if(name.equals(R+"FrameEnd")&&method.equals("draw")){
+                            if(owner.equals(R+"PackStages")&&m.equals("run"))policy="pass";
+                            if(owner.equals(R+"PackStages")&&m.equals("any"))policy="false";
+                            if(owner.equals(R+"TemporalPass")&&m.equals("remember")||owner.equals(R+"FrameGenPass")&&m.equals("capture"))policy="skip";
+                        }
+                        if(name.equals(R+"TemporalPass")&&owner.equals(name)&&m.equals("remember"))policy="skip";
                         if(name.equals(R+"TemporalPass") && method.equals("begin") && owner.equals("java/util/function/LongSupplier") && m.equals("getAsLong")) policy="once";
                         if(policy!=null) wrap(op,owner,m,desc,itf,policy,alternate);
                         else super.visitMethodInsn(op,owner,m,desc,itf);
@@ -111,8 +117,8 @@ public final class StageTransform {
             }
         },0);
         // Exact class pin plus anchor counts: a missing native stage must never silently become a partial split.
-        int expected=name.equals(R+"WorldRenderer")?22:name.equals(R+"FarPass")?6:1;
-        if(hits.size()!=expected || hits.entrySet().stream().anyMatch(e->e.getValue()!=(e.getKey().equals("passes:"+R+"WorldRenderer.runPasses")?2:1)))
+        int expected=name.equals(R+"WorldRenderer")?19:name.equals(R+"FarPass")?5:name.equals(R+"FrameEnd")?4:name.equals(R+"SkyPass")?1:3;
+        if(hits.size()!=expected || hits.entrySet().stream().anyMatch(e->e.getValue()!=(e.getKey().equals("draw:"+R+"PackStages.run")?2:1)))
             throw new IllegalArgumentException("Native stage anchors changed: "+hits);
         return writer.toByteArray();
     }

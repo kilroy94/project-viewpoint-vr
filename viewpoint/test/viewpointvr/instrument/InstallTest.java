@@ -20,6 +20,10 @@ public final class InstallTest {
     public static void main(String[] args)throws Exception{
         Path mod=Path.of(args[0]);var instrumentation=TestAgent.instrumentation;var loader=InstallTest.class.getClassLoader();
         BinaryPins.verify(Path.of(args[1]),mod,Path.of(args[2]));checks++;
+        Class<?> nativeLoader=Class.forName("me.zed_0xff.zombie_buddy.Loader",false,loader);
+        var nativeInstrumentation=nativeLoader.getDeclaredField("g_instrumentation");
+        check(java.lang.reflect.Modifier.isStatic(nativeInstrumentation.getModifiers())&&nativeInstrumentation.getType()==Instrumentation.class,"Current loader instrumentation bridge metadata");
+        try(var loaderJar=new JarFile(args[2])){check("2.3.4".equals(loaderJar.getManifest().getMainAttributes().getValue("Implementation-Version")),"Audited installed ZombieBuddy version");}
         Class<?>[] targets=new Class<?>[Installation.TARGETS.size()];Map<String,byte[]> expected=new HashMap<>();
         try(var jar=new JarFile(mod.toFile())){
             for(int i=0;i<targets.length;i++){

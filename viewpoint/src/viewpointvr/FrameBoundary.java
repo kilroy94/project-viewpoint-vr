@@ -61,6 +61,9 @@ public final class FrameBoundary {
         }
     }
 
+    /** Retains the new native guarded(Runnable) error and GL restoration boundary. */
+    public static Runnable runnable(Object drawer,MethodHandle method){return ()->{try{draw(drawer,method);}catch(Throwable error){FrameBoundary.<RuntimeException>raise(error);}};}
+    @SuppressWarnings("unchecked") private static <T extends Throwable> void raise(Throwable error)throws T{throw (T)error;}
     private static final class OneShot implements NativeDraw {
         private final Thread owner = Thread.currentThread();
         private final MethodHandle method;

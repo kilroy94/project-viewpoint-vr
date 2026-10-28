@@ -1,14 +1,14 @@
-# Native stage adapter (0.6.1 / Viewpoint 0.1.5a-hotfix)
+# Native stage adapter (0.9.0 / Viewpoint 0.1.6.1)
 
-`ViewpointBackend` implements `StereoFrame.Backend` using the pinned renderer's own methods. `StageTransform` edits call sites in WorldRenderer, FarPass and TemporalPass, retaining the original class schema and method implementations. It uses method handles resolved with each native caller's access privileges. Inactive hooks invoke the original calls unchanged. Full-JAR pins and normalized executable comparisons reject unknown or already patched classes before transformation.
+`ViewpointBackend` implements `StereoFrame.Backend` using the pinned renderer's own methods. `StageTransform` edits call sites in WorldRenderer, FarPass, TemporalPass, FrameEnd and SkyPass, retaining the original class schema and method implementations. It uses method handles resolved with each native caller's access privileges. Inactive hooks invoke the original calls unchanged. Full-JAR pins and normalized executable comparisons reject unknown or already patched classes before transformation.
 
-The three classes have 30 checked stage anchors: 23 in WorldRenderer (including two passes/runPasses sites), six in FarPass and one in TemporalPass. Together with SceneDrawer, four native target classes require all-or-nothing verification/activation. The 0.4.0 diagnostic loader now implements that path; the user confirmed 0.4.1 captures; earlier desktop/null-headset tests were user-confirmed; this updated-version port remains unvalidated in-game.
+The five stage classes have 33 checked invocation/return anchors: 19 in WorldRenderer, five in FarPass, three in TemporalPass, five in FrameEnd and one in SkyPass. Together with SceneDrawer, five visibility classes and two UI/input classes, thirteen native targets activate or roll back together. Current installed copies pass offline verification without initialization; the 0.9.0 port remains unvalidated in-game.
 
 ## Execution and ownership
 
 The driver calls the native late mouse read once and uses the resulting Look yaw/pitch. It obtains the anchor through native Camera.eye, including the current 0.12-unit offset and captured camera lean, creates two cameras with 0..0.064 scene-unit IPD, and keeps a center camera for native hand/flashlight placement. Unsupported projection/camera/gameplay modes delegate the ordinary single native draw. No game-thread snapshot or simulation work is repeated.
 
-The backend saves the borrowed scene projection, native hand/culling state and output state, then opens a thread-owned stage scope. A preparation call to native `WorldRenderer.begin` performs shared work with `drawWorld` suppressed. Subsequent begin calls update native per-eye camera/output state and draw the world, while shared calls and frame-index increments are suppressed. Ordinary outline, translucency, indirect/weather and finish methods follow for each eye.
+The backend saves the borrowed scene projection, native hand/culling state and output state, then opens a thread-owned stage scope. A preparation call to native `WorldRenderer.begin` performs shared work with `drawWorld` suppressed. Subsequent begin calls update native per-eye camera/output state and draw the world, while shared calls and frame-index increments are suppressed. Ordinary outline, translucency, weather and finish methods follow for each eye.
 
 | Work | Pair behavior |
 |---|---|
@@ -28,7 +28,7 @@ The outer SceneDrawer failure handler may call native `restoreOutput` after the 
 
 ## Diagnostic effects
 
-While a scope is active, native off() treats TAA, indirect lighting, volumetrics and clouds as disabled. Shader-pack post passes are bypassed and FINAL-pass detection returns false. Native temporal history remembering is suppressed; history validity and previous-frame validity are cleared. No graphics property files or global user settings are changed. The next ordinary frame can resume native settings with invalidated temporal history.
+While a scope is active, native off() treats TAA, indirect lighting, volumetrics and clouds as disabled. FrameEnd shader-pack post passes are bypassed and FINAL-pass detection returns false. Native temporal history remembering is suppressed; history validity and previous-frame validity are cleared. Vendor temporal upscaling is inactive because the native upscaler selection is short-circuited by scoped TAA-off. FrameGenPass midframe/capture calls are skipped, and enabled frame generation rejects stereo eligibility. The borrowed scene Panini strength is set to zero and restored only while the same snapshot remains owned. No graphics property files or global user settings are changed. The next ordinary frame can resume native settings with invalidated temporal history.
 
 In 0.5.0, each runtime FOV is enclosed by a symmetric render projection and cropped on submission. Head rotation/translation is applied to the per-eye cameras. Five pinned visibility targets (including the new corpse cone) conservatively keep all-direction chunks/models and bypass room hiding while continuous rendering is active. Native shadow placement uses a centered hand camera, but actual visual consistency, visibility at edges, input targeting and effect compatibility still require in-game evidence.
 

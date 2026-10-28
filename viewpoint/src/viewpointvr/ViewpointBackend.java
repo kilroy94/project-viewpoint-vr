@@ -34,22 +34,25 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
             add("frame",drawer,"frame",frame);
             add("scene",frame,"scene",scene); add("number",frame,"number",long.class); add("takenNanos",frame,"takenNanos",long.class);
             for(String n:List.of("eyeX","eyeY","eyeZ","viewYaw","viewPitch")) add(n,frame,n,float.class);
-            add("projection",scene,"projection",Matrix4f.class);
+            add("projection",scene,"projection",Matrix4f.class);add("panini",scene,"panini",float.class);
             add("context",world,"frame",context);
             for(String n:List.of("handView","cullView")) add(n,world,n,Matrix4f.class);
             for(String n:List.of("handFromPlayer","cullFromPlayer","freeCamera")) add(n,world,n,boolean.class);
             for(String n:List.of("outputDrawFbo","outputReadFbo")) add(n,context,n,int.class);
             add("outputScissor",context,"outputScissor",boolean.class); add("viewport",context,"viewport",int[].class);
             add("generation",load(loader,"viewpoint.platform.HotReload"),"generation",int.class);
-            add("third",load(loader,"viewpoint.input.ThirdPerson"),"active",boolean.class);
+            add("third",load(loader,"viewpoint.core.View"),"thirdPerson",boolean.class);
+            Class<?> toggle=load(loader,"viewpoint.platform.LiveSettings$Toggle");
+            add("frameGen",load(loader,"viewpoint.platform.Graphics"),"FRAME_GENERATION",toggle);
+            methods.put("frameGenGet",MethodHandles.lookup().unreflect(toggle.getMethod("get")));
             add("free",load(loader,"viewpoint.input.FreeCam"),"active",boolean.class);
             add("client",load(loader,"zombie.network.GameClient"),"client",boolean.class);
             add("server",load(loader,"zombie.network.GameServer"),"server",boolean.class);
-            Class<?> squares=load(loader,"viewpoint.core.CameraSquares");
-            add("squares",frame,"cameraSquares",squares); add("seated",squares,"seated",boolean.class);
+            Class<?> shot=load(loader,"viewpoint.core.CameraShot");
+            add("shot",frame,"cameraShot",shot);add("seated",shot,"seated",boolean.class);add("shotOn",shot,"on",boolean.class);
             method("begin",world,"begin",scene,Matrix4f.class,float.class,float.class,float.class);
             method("outlines",world,"drawOutlines");
-            for(String n:List.of("drawTranslucent","drawIndirect","finish")) method(n,world,n,scene);
+            for(String n:List.of("drawTranslucent","finish")) method(n,world,n,scene);
             method("weather",world,"drawWeather",scene,float.class,float.class,float.class);
             method("release",load(loader,"viewpoint.models.Models"),"release",frame);
             Class<?> look=load(loader,"viewpoint.input.Look");
@@ -76,9 +79,9 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
         Object get(String key,Object receiver) throws IllegalAccessException { return fields.get(key).get(receiver); }
         void set(String key,Object receiver,Object value) throws IllegalAccessException { fields.get(key).set(receiver,value); }
         Object call(String key,Object... args) throws Throwable { return methods.get(key).invokeWithArguments(args); }
-        boolean eligible(Object frame) throws IllegalAccessException {
-            return !(boolean)get("third",null) && !(boolean)get("free",null) && !(boolean)get("client",null)
-                    && get("iris",null)==null && !(boolean)get("server",null) && !(boolean)get("seated",get("squares",frame));
+        boolean eligible(Object frame) throws Throwable {
+            return !(boolean)call("frameGenGet",get("frameGen",null)) && !(boolean)get("third",null) && !(boolean)get("free",null) && !(boolean)get("client",null)
+                    && get("iris",null)==null && !(boolean)get("server",null) && !(boolean)get("seated",get("shot",frame)) && !(boolean)get("shotOn",get("shot",frame));
         }
     }
 
@@ -90,7 +93,7 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
     @FunctionalInterface public interface CameraFactory {
         StereoCamera.Pair create(Vector3f center,float yaw,float pitch,StereoCamera.Fov nativeFov);
     }
-    public static boolean eligible(Access access,Object drawer) throws IllegalAccessException {
+    public static boolean eligible(Access access,Object drawer) throws Throwable {
         return access.eligible(access.get("frame",drawer));
     }
     public static FrameBoundary.Driver cameras(Access access,Output output,CameraFactory factory) {
@@ -131,6 +134,7 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
         Matrix4f projection=new Matrix4f((Matrix4f)access.get("projection",scene));
         Matrix4f hand=new Matrix4f((Matrix4f)access.get("handView",null));
         Matrix4f cull=new Matrix4f((Matrix4f)access.get("cullView",null));
+        float panini=(float)access.get("panini",scene);
         Object handFlag=access.get("handFromPlayer",null), cullFlag=access.get("cullFromPlayer",null), freeFlag=access.get("freeCamera",null);
         Object context=access.get("context",null);
         SavedOutput saved=Objects.requireNonNull(output.save(),"saved output");
@@ -139,8 +143,10 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
         return ()-> {
             Throwable failure=null;
             try {
-                if((long)access.get("number",frame)==number && access.get("scene",frame)==scene)
+                if((long)access.get("number",frame)==number && access.get("scene",frame)==scene) {
                     ((Matrix4f)access.get("projection",scene)).set(projection);
+                    access.set("panini",scene,panini);
+                }
                 ((Matrix4f)access.get("handView",null)).set(hand);
                 ((Matrix4f)access.get("cullView",null)).set(cull);
                 access.set("handFromPlayer",null,handFlag); access.set("cullFromPlayer",null,cullFlag);access.set("freeCamera",null,freeFlag);
@@ -166,6 +172,7 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
         access.set("handFromPlayer",null,true); access.set("cullFromPlayer",null,false);access.set("freeCamera",null,false);
         Matrix4f view=new Matrix4f(pair.left().view()).translate(new Vector3f(pair.left().position()).sub(center));
         ((Matrix4f)access.get("handView",null)).set(view);
+        access.set("panini",scene,0f);
         started=true;
         return (boolean)access.call("begin",scene,view,center.x,center.y,center.z);
     }
@@ -181,7 +188,7 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
         ((Matrix4f)access.get("projection",scene)).set(camera.projection());
         Vector3f p=camera.position();
         if(!(boolean)access.call("begin",scene,camera.view(),p.x,p.y,p.z)) throw new IllegalStateException("Native eye begin failed");
-        access.call("outlines"); access.call("drawTranslucent",scene); access.call("drawIndirect",scene);
+        access.call("outlines"); access.call("drawTranslucent",scene);
         access.call("weather",scene,p.x,p.y,p.z); access.call("finish",scene);
     }
     public void copy(int eye) throws Throwable { output.copy(eye); }

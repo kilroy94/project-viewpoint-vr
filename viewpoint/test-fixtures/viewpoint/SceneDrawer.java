@@ -7,12 +7,14 @@ public final class SceneDrawer {
     public Throwable failure;
     public Throwable caught;
     public void render() {
-        try { drawFrame(); }
+        try { guarded(this::drawFrame); }
         catch (Throwable error) { caught = error; }
         finally { restores++; }
     }
-    private void drawFrame() throws Throwable {
+    @SuppressWarnings("unchecked") private static <T extends Throwable> void raise(Throwable error)throws T{throw (T)error;}
+    private static void guarded(Runnable body){body.run();}
+    private void drawFrame() {
         nativeCalls++;
-        if (failure != null) throw failure;
+        if (failure != null) SceneDrawer.<RuntimeException>raise(failure);
     }
 }

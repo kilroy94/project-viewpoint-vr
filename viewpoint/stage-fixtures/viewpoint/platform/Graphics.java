@@ -1,0 +1,1 @@
+package viewpoint.platform; public final class Graphics {public static final LiveSettings.Toggle FRAME_GENERATION=new LiveSettings.Toggle();}

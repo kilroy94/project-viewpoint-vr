@@ -1,6 +1,6 @@
-# Headset UI implementation (0.8.0)
+# Headset UI implementation (0.9.0)
 
-Target: exact-pinned Viewpoint 0.1.5a-hotfix and Zomboid 42.21.0. Decompiled classes informed call-site selection only; no dependency source or binaries are distributed. The current update preserves the audited UI capture call sites. The new setup wizard uses the same ImGuiFrame draw-data path as settings and is captured by that hook. Older Viewpoint binaries are no longer accepted.
+Target: exact-pinned Viewpoint 0.1.6.1 and Zomboid 42.21.0. Decompiled classes informed call-site selection only; no dependency source or binaries are distributed. The current update preserves the audited UI capture call sites and adapts mouse pinning to MouseButtons.pin. ImGui draw data is consumed synchronously before native freeDrawData, retaining the upstream memory-leak fix. Crash-report windows use the same captured ImGui path and block locomotion while visible. The new setup wizard uses the same ImGuiFrame draw-data path as settings and is captured by that hook. Older Viewpoint binaries are no longer accepted.
 
 ## Capture boundaries
 
@@ -19,4 +19,4 @@ Desktop keyboard/mouse interaction remains unchanged. A small high-contrast mark
 
 ## Verification boundary
 
-The hidden OpenGL test verifies transparent compositing, alpha, stencil clipping/reset, overlay order, desktop restoration, retained/expired vanilla contents, disappearing overlays, resize, cursor visibility and failure restoration. Bridge tests check queued ordering, native exceptions, once-only invocation, obsolete callbacks and capture failure. Both additional pinned classes are verified/retransformed without initialization alongside the nine renderer/visibility targets; altered/already-patched inputs are rejected. No game/mod entry point or SteamVR is launched. See VALIDATION.md for the final build record and TESTING.md for the user's eventual null-headset test.
+The hidden OpenGL test verifies transparent compositing, alpha, stencil clipping/reset, overlay order, desktop restoration, retained/expired vanilla contents, disappearing overlays, resize, cursor visibility and failure restoration. Bridge tests check queued ordering, native exceptions, once-only invocation, obsolete callbacks and capture failure. Both additional pinned classes are verified/retransformed without initialization alongside eleven renderer/visibility targets; altered/already-patched inputs are rejected. No game/mod entry point or SteamVR is launched. See VALIDATION.md for the final build record and TESTING.md for the user's eventual null-headset test.

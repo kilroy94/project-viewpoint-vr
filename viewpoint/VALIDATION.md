@@ -1,5 +1,17 @@
 # Viewpoint baseline validation
 
+## Compatibility port: 0.9.0 (2026-10-27)
+
+Installed Zomboid 42.21.0 remains byte-identical (`e1a69eb743ede60b213a0fe7f8b83d4fcab773036d256cc4543a336f3b058a33`). Viewpoint is now 0.1.6.1 (`096bd37d63cb699ac95e9e7ea5245a1b9b5ff08c5161db35f6733b1d1c42b064`) and ZombieBuddy 2.3.4 (`eb79b9876332010733a8e0d7ce4fe0377846059a9e28859029e2a0fb449f6cf2`). Both changed binaries required auditing/replacement of the old exact pins. The installed VR descriptor still identified 0.6.1; no controller reports existed at the default cache path. See [COMPATIBILITY.md](COMPATIBILITY.md) for review findings and current limitations.
+
+Ported guarded scene method-reference entry, FrameEnd post-processing, SkyPass weather preparation, consolidated far uploads, CameraShot eligibility and MouseButtons pinning. Panini is scoped to zero for stereo and restored transactionally. TAA/history/vendor temporal upscaling are inactive inside owned stereo; frame generation must be disabled and midframe/capture calls are suppressed. Crash popups use the ImGui input route and inhibit locomotion. Loader 2.3.4 instrumentation metadata and descriptor version bounds are validated. Older targets are retired.
+
+Full Build.ps1 passed in `18f4c09a03094859acdd05733a48136d`: 272 native-stage fixture checks, 33 entry fixture checks, 55 native-input integration checks, 17 copied activation/rollback/loader checks, 17 copied-entry checks, six contract methods/23 invocations, 33 stage anchors and all prior tests. Thirteen copied targets verified/retransformed without initialization. Hidden GL: 59 UI, 32 output and 15 beam checks. Lua compiled without execution. The real loader returned expected missing-runtime error -51 using only a nonexistent process-local manifest.
+
+The extracted production JAR independently passed the missing-runtime smoke test with its bundled OpenXR loader. Archive/source checks found no proprietary/test classes or literal personal machine paths.
+
+Package: `dist/ProjectViewpointVR-0.9.0.zip`, 88 production classes, SHA-256 `a0839a167663ae2a4c457ae175d9ba75e6a6072b92d791402ef42cda14328aa4`. No game/mod entry point or SteamVR was launched, and installed/user-data files were not modified. Updated-version live desktop/XR/UI/diagnostic checks remain pending; historical live confirmations do not validate 0.9.0.
+
 ## User-run controller diagnostic: 0.8.0
 
 Adds an explicitly armed UI-only simulator with a visible cyan pointer and incremental UTF-8 reports. Two dedicated test surfaces use real game UI paths when the user launches them: a Zomboid ISButton/Lua drag target/ISScrollingListBox and a Viewpoint settings panel with an ImGui button/slider/scrolling child. The settings panel uses the audited `SettingsWindow.panel(String, Runnable)` API; offline activation verifies its signature without initializing the class. No new transform targets or call sites were added.

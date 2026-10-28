@@ -22,7 +22,7 @@ public final class UiTransform {
             public MethodVisitor visitMethod(int access,String method,String descriptor,String signature,String[] exceptions){
                 return new MethodVisitor(ASM9,super.visitMethod(access,method,descriptor,signature,exceptions)){
                     public void visitMethodInsn(int op,String owner,String called,String desc,boolean itf){
-                        if(name.equals(TARGETS.get(0))&&method.equals("mouseUpdated")&&op==INVOKESTATIC&&owner.equals("viewpoint/input/Controls")&&called.equals("pinMouse")&&desc.equals("()V")){
+                        if(name.equals(TARGETS.get(0))&&method.equals("mouseUpdated")&&op==INVOKESTATIC&&owner.equals("viewpoint/input/MouseButtons")&&called.equals("pin")&&desc.equals("()V")){
                             super.visitLdcInsn(new Handle(H_INVOKESTATIC,owner,called,desc,false));
                             super.visitMethodInsn(INVOKESTATIC,"viewpointvr/input/InputBridge","mouse","(Ljava/lang/invoke/MethodHandle;)V",false);hits[0]++;return;
                         }

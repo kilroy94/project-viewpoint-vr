@@ -8,7 +8,7 @@ import zombie.iso.Vector2;
 import static org.lwjgl.glfw.GLFW.*;
 /** Game-thread native input overlay; never sends OS input or changes physical device state. */
 public final class NativeInput implements InputBridge.Native {
- private final Field mouseX,mouseY,captured,yaw,enabled,third,free,iris,cursorMode,settings,onboarding;
+ private final Field mouseX,mouseY,captured,yaw,enabled,third,free,iris,cursorMode,settings,onboarding,crash;
  private final ControllerLogic logic=new ControllerLogic();
  private final MouseMerge mouse=new MouseMerge();private int previousRoute;
  private long generation=-1;private PanelRay.Hit lastHit;
@@ -17,9 +17,9 @@ public final class NativeInput implements InputBridge.Native {
  public NativeInput(ClassLoader loader)throws ReflectiveOperationException{
   mouseX=field(loader,"zombie.input.Mouse","x");mouseY=field(loader,"zombie.input.Mouse","y");
   captured=field(loader,"viewpoint.input.Look","captured");yaw=field(loader,"viewpoint.input.Look","yaw");
-  enabled=field(loader,"viewpoint.core.View","enabled");third=field(loader,"viewpoint.input.ThirdPerson","active");free=field(loader,"viewpoint.input.FreeCam","active");
+  enabled=field(loader,"viewpoint.core.View","enabled");third=field(loader,"viewpoint.core.View","thirdPerson");free=field(loader,"viewpoint.input.FreeCam","active");
   iris=field(loader,"viewpoint.platform.IrisPacks","active");cursorMode=field(loader,"viewpoint.FP","cursorMode");
-  settings=field(loader,"viewpoint.platform.SettingsWindow","shown");onboarding=field(loader,"viewpoint.platform.Onboarding","shown");
+  settings=field(loader,"viewpoint.platform.SettingsWindow","shown");onboarding=field(loader,"viewpoint.platform.Onboarding","shown");crash=field(loader,"viewpoint.platform.CrashReport","shown");
  }
  private static Field field(ClassLoader loader,String type,String name)throws ReflectiveOperationException{var f=Class.forName(type,false,loader).getDeclaredField(name);f.setAccessible(true);return f;}
  private boolean physicalButtons(){if(Mouse.buttonDownStates!=null)for(boolean pressed:Mouse.buttonDownStates)if(pressed)return true;return false;}
@@ -31,11 +31,11 @@ public final class NativeInput implements InputBridge.Native {
  public void mouse()throws Throwable{
   boolean valid=owns();boolean released=!captured.getBoolean(null)&&InputBridge.panelReady();
   boolean modal=zombie.ui.UIManager.isModalVisible();
-  boolean menu=settings.getBoolean(null)||onboarding.getBoolean(null);
+  boolean menu=settings.getBoolean(null)||onboarding.getBoolean(null)||crash.getBoolean(null);
   int route=menu?2:1;
   if(previousRoute!=route)logic.reset();
   long now=System.nanoTime();
-  viewpointvr.diagnostic.ControllerDiagnostic.beforeMouse(now,valid&&!modal&&!onboarding.getBoolean(null),released,route,physicalButtons(),Mouse.wheelDelta,Core.getInstance().getScreenWidth(),Core.getInstance().getScreenHeight());
+  viewpointvr.diagnostic.ControllerDiagnostic.beforeMouse(now,valid&&!modal&&!onboarding.getBoolean(null)&&!crash.getBoolean(null),released,route,physicalButtons(),Mouse.wheelDelta,Core.getInstance().getScreenWidth(),Core.getInstance().getScreenHeight());
   long current=InputBridge.generation();if(current!=generation){generation=current;logic.reset();}
   var next=logic.step(valid?InputBridge.sample():ControllerState.EMPTY,now,InputBridge.effectiveMode(),released,
     valid&&InputBridge.gameplay()&&!modal&&!menu&&!zombie.GameTime.isGamePaused(),InputBridge.aspect,InputBridge.turning);
@@ -61,7 +61,7 @@ public final class NativeInput implements InputBridge.Native {
  }
  public void move(Object player,Object vector)throws Throwable{
   if(player!=IsoPlayer.players[0]||!owns()||!InputBridge.gameplay()||!InputBridge.state.fresh(System.nanoTime())||!captured.getBoolean(null))return;
-  var p=(IsoPlayer)player;if(p.isBlockMovement()||zombie.GameTime.isGamePaused()||zombie.ui.UIManager.isModalVisible()||settings.getBoolean(null)||onboarding.getBoolean(null))return;
+  var p=(IsoPlayer)player;if(p.isBlockMovement()||zombie.GameTime.isGamePaused()||zombie.ui.UIManager.isModalVisible()||settings.getBoolean(null)||onboarding.getBoolean(null)||crash.getBoolean(null))return;
   var v=(Vector2)vector;var output=InputBridge.output;
   if(InputBridge.mode==2&&v.getLength()<.001f)v.set(output.moveX(),-output.moveY());
  }

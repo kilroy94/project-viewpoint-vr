@@ -1,0 +1,1 @@
+package viewpoint.render; final class SkyPass {private final WeatherMap weatherMap=new WeatherMap();void prepare(FrameContext f){weatherMap.draw(f);Probe.hit("air");}}

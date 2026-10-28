@@ -37,7 +37,7 @@ public final class StageFixtureTest {
     private static long count(List<String> events,String name) { return events.stream().filter(name::equals).count(); }
     @SuppressWarnings({"unchecked","try"})
     public static void main(String[] args) throws Throwable {
-        List<String> scenarios=List.of("inactive","success","skipped","models","world","rightWorld","finish","copy0","copy1","texturesRelease","restore","extent","recycle","generation","third","iris","irisSwitch","offAxis");
+        List<String> scenarios=List.of("inactive","success","skipped","models","world","rightWorld","finish","copy0","copy1","texturesRelease","restore","extent","recycle","generation","third","iris","irisSwitch","offAxis","frameGen","frameGenSwitch","shot","seated");
         for(String scenario:scenarios) try(var loader=new Loader(Path.of(args[0]))) {
             var access=new ViewpointBackend.Access(loader);
             Class<?> drawerType=loader.loadClass("viewpoint.SceneDrawer");
@@ -47,6 +47,9 @@ public final class StageFixtureTest {
             Object frame=drawerType.getMethod("snapshot").invoke(drawer), scene=get(frame,"scene");
             Matrix4f projection=(Matrix4f)get(scene,"projection");
             if(scenario.equals("offAxis")) projection.m20(.1f);
+            if(scenario.equals("frameGen"))set(staticGet(loader.loadClass("viewpoint.platform.Graphics"),"FRAME_GENERATION"),"value",true);
+            if(scenario.equals("shot"))set(get(frame,"cameraShot"),"on",true);
+            if(scenario.equals("seated"))set(get(frame,"cameraShot"),"seated",true);
             Matrix4f before=new Matrix4f(projection);
             List<String> events=(List<String>)staticGet(probe,"events");
             if(scenario.equals("inactive")) {
@@ -62,7 +65,7 @@ public final class StageFixtureTest {
             if(List.of("models","world","finish","texturesRelease").contains(scenario)) probe.getField("fail").set(null,scenario);
             if(scenario.equals("rightWorld")) { probe.getField("fail").set(null,"world"); probe.getField("failOccurrence").setInt(null,2); }
             if(scenario.equals("skipped")) probe.getField("skip").setBoolean(null,true);
-            if(scenario.equals("third")) loader.loadClass("viewpoint.input.ThirdPerson").getField("active").setBoolean(null,true);
+            if(scenario.equals("third")) loader.loadClass("viewpoint.core.View").getField("thirdPerson").setBoolean(null,true);
             if(scenario.equals("iris"))loader.loadClass("viewpoint.platform.IrisPacks").getField("active").set(null,loader.loadClass("viewpoint.platform.IrisPacks$Active").getConstructor().newInstance());
             var output=new ViewpointBackend.Output() {
                 public ViewpointBackend.SavedOutput save() {
@@ -88,17 +91,19 @@ public final class StageFixtureTest {
                     if(scenario.equals("copy"+eye)) throw new IllegalStateException("copy failure");
                     if(scenario.equals("recycle") && eye==0) set(frame,"number",8L);
                     if(scenario.equals("irisSwitch") && eye==0)loader.loadClass("viewpoint.platform.IrisPacks").getField("active").set(null,loader.loadClass("viewpoint.platform.IrisPacks$Active").getConstructor().newInstance());
+                    if(scenario.equals("frameGenSwitch")&&eye==0)set(staticGet(loader.loadClass("viewpoint.platform.Graphics"),"FRAME_GENERATION"),"value",true);
                     if(scenario.equals("generation") && eye==0) loader.loadClass("viewpoint.platform.HotReload").getField("generation").setInt(null,1);
                 }
                 public void publish() { events.add("publish"); }
             };
             try(var scope=FrameBoundary.register(ViewpointBackend.synthetic(access,output,.064f))) { drawerType.getMethod("render").invoke(drawer); }
             Throwable caught=(Throwable)get(drawer,"caught");
-            if(scenario.equals("third") || scenario.equals("iris") || scenario.equals("offAxis")) {
+            if(scenario.equals("third") || scenario.equals("iris") || scenario.equals("offAxis") || scenario.equals("frameGen") || scenario.equals("shot") || scenario.equals("seated")) {
                 check((int)get(drawer,"nativeCalls")==1 && !events.contains("save"),"Unsupported camera delegates ordinary draw");
                 continue;
             }
             check((int)get(drawer,"nativeCalls")==0,"Native whole-frame method never replayed");
+            check((float)get(scene,"panini")== (scenario.equals("recycle")?0:.5f),"Panini restore respects snapshot ownership after "+scenario);
             check(projection.equals(before),"Scene projection restored on "+scenario);
             check((boolean)staticGet(world,"handFromPlayer") && (boolean)staticGet(world,"cullFromPlayer")
                     && (boolean)staticGet(world,"freeCamera") && ((Matrix4f)staticGet(world,"handView")).equals(new Matrix4f()),"Borrowed native hand/culling state restored");
@@ -107,12 +112,12 @@ public final class StageFixtureTest {
             check(count(events,"retirement")==1,"Retirement once at pair end");
             check(count(events,"drawersRelease")== (scenario.equals("recycle")?0:1),"Never release a recycled frame's drawers");
             check(!events.contains("jitter") && !events.contains("resolve") && !events.contains("remember")
-                    && !events.contains("iris") && !events.contains("passes") && !events.contains("packHistory") && !events.contains("indirect"),"Diagnostic history/effects suppressed");
+                    && !events.contains("iris") && !events.contains("passes") && !events.contains("packHistory") && !events.contains("indirect") && !events.contains("panini") && !events.contains("framegen") && !events.contains("midframe"),"Diagnostic history/effects suppressed");
             if(!scenario.equals("skipped")) check(count(events,"stream")==1 && count(events,"models")==1 && count(events,"uniforms")==1,"Shared preparation once");
             if(scenario.equals("success")) {
                 check(caught==null,"Successful synthetic pair: "+caught);
-                check(count(events,"world")==2 && count(events,"frustum")==2 && count(events,"mask")==2,"Per-eye world/frusta/masks twice");
-                for(String name:List.of("shells","cells","bandLight","cellLight","trees","clock","developer","pack","floors","ground","uploads","meshes","shadows","weatherMap","mousePick","farShadows","lateLook","cameraEye","latency"))
+                check(count(events,"air")==2 && count(events,"world")==2 && count(events,"frustum")==2 && count(events,"mask")==2,"Per-eye world/frusta/masks twice");
+                for(String name:List.of("queued","relief","bandLight","cellLight","trees","clock","developer","pack","floors","ground","uploads","meshes","shadows","weatherMap","mousePick","farShadows","lateLook","cameraEye","latency"))
                     check(count(events,name)==1,"Shared native stage once: "+name);
                 check(count(events,"uniformBind")==2,"Per-eye uniform texture rebinding");
                 check(views.size()==2 && !views.get(0).equals(views.get(1)),"Distinct eye cameras reach native begin");
