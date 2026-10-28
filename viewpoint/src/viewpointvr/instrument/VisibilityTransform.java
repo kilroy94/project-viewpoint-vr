@@ -17,10 +17,17 @@ public final class VisibilityTransform {
     }
     public byte[] transform(String name,byte[] source) {
         if(!Arrays.equals(expected.get(name),CanonicalClass.encode(source)))throw new IllegalArgumentException("Visibility target differs: "+name);
-        var reader=new ClassReader(source);var writer=new ClassWriter(reader,ClassWriter.COMPUTE_MAXS);int[] hits={0};
+        var reader=new ClassReader(source);var writer=new ClassWriter(reader,ClassWriter.COMPUTE_MAXS);int[] hits={0},rig={0};
         reader.accept(new ClassVisitor(ASM9,writer){
             public MethodVisitor visitMethod(int access,String method,String desc,String signature,String[] exceptions) {
                 return new MethodVisitor(ASM9,super.visitMethod(access,method,desc,signature,exceptions)) {
+                    public void visitMethodInsn(int op,String owner,String called,String descriptor,boolean itf){
+                        if(name.endsWith("/Characters")&&method.equals("snapshot")&&op==INVOKESTATIC&&owner.equals(RigTransform.TARGET)&&called.equals("capture")&&descriptor.equals(RigTransform.CAPTURE)){
+                            super.visitLdcInsn(new Handle(H_INVOKESTATIC,owner,called,descriptor,false));
+                            super.visitMethodInsn(INVOKESTATIC,"viewpointvr/rig/RigBridge","capture","(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;ZZLjava/lang/Object;FFFFLjava/lang/invoke/MethodHandle;)Z",false);rig[0]++;return;
+                        }
+                        super.visitMethodInsn(op,owner,called,descriptor,itf);
+                    }
                     public void visitInsn(int op) {
                         String policy=null;
                         if(name.endsWith("/CorpseView")&&method.equals("sees")&&desc.equals("(FFF)Z"))policy="visible";
@@ -40,6 +47,7 @@ public final class VisibilityTransform {
             }
         },0);
         if(hits[0]==0)throw new IllegalArgumentException("No visibility anchors: "+name);
+        if(name.endsWith("/Characters")&&rig[0]!=1)throw new IllegalArgumentException("Rig capture anchor count: "+rig[0]);
         return writer.toByteArray();
     }
 }

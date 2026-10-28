@@ -76,6 +76,7 @@ public final class ViewpointBackend implements StereoFrame.Backend<Object> {
             if(!Modifier.isStatic(m.getModifiers())) throw new NoSuchMethodException("Expected static "+name);
             methods.put(key,MethodHandles.lookup().unreflect(m));
         }
+        public Object frame(Object drawer)throws IllegalAccessException{return get("frame",drawer);}
         Object get(String key,Object receiver) throws IllegalAccessException { return fields.get(key).get(receiver); }
         void set(String key,Object receiver,Object value) throws IllegalAccessException { fields.get(key).set(receiver,value); }
         Object call(String key,Object... args) throws Throwable { return methods.get(key).invokeWithArguments(args); }

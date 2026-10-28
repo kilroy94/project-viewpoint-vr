@@ -38,6 +38,9 @@ public final class XrCamera {
     }
     public void recenter() {origin=null;inverseYaw=null;viewpointvr.input.BodyTracking.clear();}
     public StereoCamera.Pair eyes(Pose head,List<View> views,Vector3f center,float yaw,float pitch,boolean tracked) {
+        return eyes(head,views,center,yaw,pitch,tracked,viewpointvr.input.BodyTracking.offset());
+    }
+    public StereoCamera.Pair eyes(Pose head,List<View> views,Vector3f center,float yaw,float pitch,boolean tracked,viewpointvr.input.BodyTracking.Offset offset) {
         if(views.size()!=2) throw new IllegalArgumentException("Two XR eyes required");
         Matrix4f headMatrix=head.matrix();
         if(origin==null) {
@@ -47,12 +50,12 @@ public final class XrCamera {
             inverseYaw=new Quaternionf().rotationY(-heading);
         }
         Matrix4f base=new Matrix4f().translationRotate(center.x,center.y,center.z,StereoCamera.viewpointLook(yaw,tracked?0:pitch));
-        var offset=viewpointvr.input.BodyTracking.offset();
         Vector3f delta=inverseYaw.transform(new Vector3f(head.x(),head.y(),head.z()).sub(origin));
-        delta.x-=offset.x();delta.z-=offset.z();
         Vector3f forward=new Matrix4f().rotate(inverseYaw).mul(headMatrix).transformDirection(new Vector3f(0,0,-1));
         float heading=(float)Math.atan2(-forward.x,-forward.z);
-        if(tracked)viewpointvr.input.BodyTracking.head(delta.x,delta.z,heading,(float)Math.atan2(forward.y,Math.hypot(forward.x,forward.z)),scale);
+        if(tracked){var q=new Quaternionf(inverseYaw).mul(headMatrix.getNormalizedRotation(new Quaternionf()));
+            viewpointvr.input.BodyTracking.headRaw(new Pose(delta.x,delta.y,delta.z,q.x,q.y,q.z,q.w),scale);
+        }
         Vector3f consumed=new Quaternionf(inverseYaw).conjugate().transform(new Vector3f(offset.x(),0,offset.z()));
         Matrix4f mapping=new Matrix4f(base).scale(scale).rotate(inverseYaw).translate(new Vector3f(origin).add(consumed).negate());
         Matrix4f fixed=headMatrix.invert(new Matrix4f());

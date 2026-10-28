@@ -1,6 +1,12 @@
-# Controller input (0.10.0)
+# Controller input (0.11.0)
 
 This is an opt-in implementation for the exact supported Viewpoint build. The user confirmed stereo and physical head tracking with Steam Frame on 0.9.0, but reported disconnected body tracking and no controller gameplay. Its log showed Controllers Off throughout, right aim tracking present and an early null mouse-array exception. Version 0.10.0 fixes that startup exception and adds a first gameplay mode. Automated coverage does not establish working physical bindings or comfortable gameplay.
+
+## Hybrid rig update
+
+The user confirmed thumbstick walking, but the 0.10.0 body-follow implementation did not work in-game. Version 0.11.0 removes physical following from the stick/animation vector and gives it a separate bounded native collision query/translation. It no longer depends on desktop focus, mouse capture, controller assignment or neutral sticks. Physical and virtual movement can occur together. Input status reports the blocking gate. See [HYBRID-RIG.md](HYBRID-RIG.md) for the exact ownership, head/hand spaces, native snapshot integration, motion attack modes and limitations.
+
+Gameplay mode now includes tracked arms and held items. Motion melee is explicitly Off / Diagnostics / Live, starts Off, and requires the owned virtual pad assigned for Live. Holding RT arms a gesture; a deliberate right-hand swing generates a native RT pulse while native LT ready/aim and left-stick movement remain available. This is animation-timed native combat, not physical weapon-contact damage.
 
 ## Gameplay mode
 
@@ -22,15 +28,17 @@ Actual button actions follow the user's native Zomboid/Viewpoint bindings. While
 
 Head orientation is applied only to native movement/body/aim consumers: FreeLook yaw, CrosshairAim yaw/pitch and Controls hand pitch. The renderer's base Look fields stay unchanged, avoiding double head rotation. This supplies angular native aiming, not an independently tracked weapon or interaction ray. Native picking/crosshair depth retains its ordinary camera origin and requires live assessment.
 
-With sticks/keyboard centered, head displacement over 12 cm requests bounded walking toward the headset through Controls.moveVector. PadLook's zero movement stick is bypassed for an owned follow request. The next movement-start callback measures the actor's actual XY movement and consumes only that displacement in recentered XR metres. The camera subtracts the consumed offset; blocked collision consumes zero. Virtual movement is not consumed. Teleport-sized deltas over 0.35 scene units, floor changes and head offsets over 1.5 m are rejected. Focus loss retains calibration; recenter clears it. This is horizontal actor following, not head collision, crouch-state control or full body IK.
+Head displacement beyond a 4 cm lean allowance requests up to 0.12 scene units per update through PolygonalMap2 collision and loaded-floor/adjacent-tile guards. Only accepted physical displacement is consumed in XR metres. Pending native stick movement is preserved. The per-snapshot compensation prevents an older render frame from using a newer simulation offset. Missing XR focus, stale tracking, pause, native action/movement blocks and unsafe tiles inhibit it; UI cursor release alone does not. Offsets above 1.5 m need recentering. This is horizontal body movement, not head collision, walking gait/footstep/endurance integration, physical crouch-state control or full body IK.
 
 Steam Frame support enables `XR_VALVE_frame_controller_interaction` only when advertised and suggests `/interaction_profiles/valve/frame_controller_valve`. Frame's four face buttons are on the right and its D-pad/View button on the left. Paths follow [Valve's controller documentation](https://github.com/ValveSoftware/Unity/blob/main/com.valvesoftware.openxr.utils/Documentation~/index.md) and [Steam Frame input documentation](https://partner.steamgames.com/doc/steamhardware/steamframe/input). Core Touch/Index/WMR/simple profiles remain available if the extension is absent. One rejected profile suggestion no longer disables the entire controller action set.
 
 The native gamepad mapper and registry overlay reuse authored PZ3D-era code without its renderer, melee or hand-interaction dependencies. Off/loss publishes neutral input and retains identity. A real device claiming slot 15 drains and disconnects the virtual pad, removes only its own assignment and returns the slot. Logs report profile selection separately from pose tracking, normalized controller inputs, native button delivery/assignment and body following, at bounded intervals.
 
-Tracked hands, held-item transforms, hand proximity interaction and motion melee remain the next adaptation. Viewpoint captures 16-float native model palettes then packs them into 12-float render palettes with separate motion/mask records. The old PZ3D renderer hooks cannot be reused directly. No new hand deformation or native damage success is claimed here.
+The earlier ArmIk/ArmRig math now adapts native 16-float snapshots before Viewpoint's own 12-float packing. Hands and held items follow tracked grip poses; originals remain untouched and a failed preflight publishes no overrides. Native target picking, contact damage and hand proximity use remain further work.
 
-## Controls
+## UI pointer and diagnostic move/turn modes
+
+This section describes the older pointer/move diagnostic modes. Gameplay mode and motion ownership are described above.
 
 The on-screen panel adds **Controllers Off** (startup default), **UI pointer**, and **Pointer + move/turn**. Controller activation lasts for this game session. Off/Pause stops XR and clears all sampled input; a controller selection can resume after re-entering XR, with controls first returned to neutral. Desktop stereo has no controller acquisition.
 
@@ -47,7 +55,7 @@ The on-screen panel adds **Controllers Off** (startup default), **UI pointer**, 
 
 Middle mouse retains Viewpoint's native cursor toggle. No new keyboard shortcuts are assigned. Trigger does not attack or interact with the 3D world. Keyboard movement takes priority over stick movement. Menus/paused gameplay inhibit walking/turning. Mode changes, context changes, stale samples, focus loss and tracking loss require controls to return to neutral. Trigger thresholds are 0.65 press/0.25 release; walking has a 0.2 radial deadzone.
 
-Suggested OpenXR profiles: Steam Frame (optional extension), Oculus Touch, Valve Index, Microsoft motion controller and Khronos simple controller. The simple profile has select/menu buttons but no sticks, so it supplies pointer/click without scrolling or locomotion. Other controller support depends on runtime binding/remapping. The controller status reports tracked left/right aim poses; a null headset normally reports neither. Both aim and grip poses are acquired, but no hand meshes or skeletons are rendered.
+Suggested OpenXR profiles: Steam Frame (optional extension), Oculus Touch, Valve Index, Microsoft motion controller and Khronos simple controller. The simple profile has select/menu buttons but no sticks, so it supplies pointer/click without scrolling or locomotion. Other controller support depends on runtime binding/remapping. The controller status reports tracked left/right aim poses; a null headset normally reports neither. Both aim and grip poses are acquired. Gameplay mode now retargets the existing character arms and held items.
 
 ## Native integration
 
@@ -61,13 +69,13 @@ The original three exact-pinned call sites extend the existing Hooks/ImGuiFrame 
 - Before Controls.moveVector in Hooks.inputMoveVector, overlay a zero native movement vector only. Native Viewpoint conversion supplies body-relative walking; snap turn changes its native yaw.
 - After ImGuiFrame.input and before newFrame, overlay normalized cursor/button/wheel values in that frame's active ImGui context. Physical input runs exactly once. Viewpoint's native settings blocker still prevents game clicks behind its window.
 
-Input requires a focused game window, eligible Viewpoint first-person single-player character on foot and fresh XR data. Pointer use additionally requires a recently published UI panel and released cursor. Walking/turning additionally requires a recent tracked world frame and no blocking menu. Renderer/session loss clears input. Exceptions disable the controller layer and retain original callbacks; disable/re-enable the controller mode after resolving an input error.
+The diagnostic input modes require a focused game window; gameplay mode also accepts fresh focused XR tracking with an unfocused desktop. All modes require an eligible Viewpoint first-person single-player character on foot and fresh XR data. Pointer use additionally requires a recently published UI panel and released cursor. Walking/turning additionally requires a recent tracked world frame and no blocking menu. Renderer/session loss clears input. Exceptions disable the controller layer and retain original callbacks; disable/re-enable the controller mode after resolving an input error.
 
 ## Validation and remaining work
 
 ControllerTest exercises panel geometry, click hysteresis, ray misses, neutral rearming, stale/focus/tracking loss, scroll repeat, movement deadzones, diagonal speed limits, snap-turn/menu edges, physical/virtual button merging and bridge invocation order/failures. RayGpuTest checks real cyan pixels for both eye offsets and restores framebuffer, viewport, VAO/program and compatibility GL state. All twenty copied targets are verified/retransformed without game/mod initialization.
 
-Physical binding selection, controller orientation, in-game inventory/settings clicks and scrolling, movement direction, snap-turn direction, focus/runtime recovery and comfort remain live acceptance tests. Hand models, inventory grabbing, controller-directed weapons, motion melee, vehicles and multiplayer are not implemented. Native gamepad button actions are provided by the gameplay mode. No SteamVR or game launch is part of automated validation.
+Physical binding selection, controller orientation, in-game inventory/settings clicks and scrolling, movement direction, snap-turn direction, focus/runtime recovery and comfort remain live acceptance tests. Inventory grabbing, controller-directed firearm aim, contact damage, vehicles and multiplayer are not implemented. Tracked arms/items and opt-in swing-triggered native attacks are present in gameplay mode, pending live tests. No SteamVR or game launch is part of automated validation.
 
 
 ## Simulated native input integration

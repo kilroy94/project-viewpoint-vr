@@ -1,0 +1,1 @@
+package zombie.inventory.types; public final class HandWeapon extends zombie.inventory.InventoryItem {public boolean melee=true,ranged;public int condition=10;public boolean isMelee(){return melee;}public boolean isRanged(){return ranged;}public int getCondition(){return condition;}}

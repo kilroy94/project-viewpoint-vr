@@ -143,7 +143,7 @@ public final class OpenXrSession implements AutoCloseable {
             if(event.type()!=XR_TYPE_EVENT_DATA_SESSION_STATE_CHANGED) continue;
             XrEventDataSessionStateChanged changed=XrEventDataSessionStateChanged.create(event.address());
             if(changed.session()!=session.address()) continue;
-            focused=changed.state()==XR_SESSION_STATE_FOCUSED;
+            focused=changed.state()==XR_SESSION_STATE_FOCUSED;viewpointvr.input.BodyTracking.xrFocused=focused;
             log("Session state="+changed.state());
             switch(changed.state()) {
                 case XR_SESSION_STATE_READY -> {
@@ -172,6 +172,7 @@ public final class OpenXrSession implements AutoCloseable {
             XrFrameEndInfo end=XrFrameEndInfo.calloc(s).type$Default().displayTime(state.predictedDisplayTime()).environmentBlendMode(XR_ENVIRONMENT_BLEND_MODE_OPAQUE);
             Throwable failure=null;
             try {
+                viewpointvr.input.BodyTracking.xrFocused=focused&&state.shouldRender();
                 if(controllers!=null)try{controllers.sample(head,state.predictedDisplayTime(),focused&&state.shouldRender(),s);}
                 catch(RuntimeException error){log("Controllers disabled: "+error);controllers.close();controllers=null;}
                 if(state.shouldRender() && renderer!=null) {

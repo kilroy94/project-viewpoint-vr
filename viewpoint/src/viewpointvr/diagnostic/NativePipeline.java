@@ -17,6 +17,7 @@ public final class NativePipeline implements RuntimeDriver.Pipeline {
     public boolean desktop(Object drawer,FrameBoundary.NativeDraw original) throws Throwable {
         var out=output();out.begin(0,0,null);ViewpointBackend.synthetic(access,out,.064f).render(drawer,original);return out.published();
     }
+    private static Object frame(ViewpointBackend.Access access,Object drawer){try{return access.frame(drawer);}catch(IllegalAccessException error){throw new IllegalStateException(error);}}
     public boolean xr(Object drawer,FrameBoundary.NativeDraw original,boolean tracked,boolean recenter) throws Throwable {
         if(xr==null)try{xr=new OpenXrSession();ui=new UiCapture();UiBridge.sink(ui);camera.recenter();}catch(Throwable error){throw new RuntimeDriver.Unavailable(error);}
         if(recenter)camera.recenter();
@@ -24,6 +25,7 @@ public final class NativePipeline implements RuntimeDriver.Pipeline {
         boolean rendered;
         try {rendered=xr.frame((head,views,sink)->{
             viewpointvr.input.InputBridge.world(tracked);
+            viewpointvr.melee.SwingInput.sample(head,viewpointvr.input.InputBridge.state,System.nanoTime());
             if(xr.consumeRecenter())camera.recenter();
             var out=output();float factor=Math.min(1f,2048f/Math.max(xr.width(),xr.height()));
             out.begin(Math.max(1,Math.round(xr.width()*factor)),Math.max(1,Math.round(xr.height()*factor)),(eye,source,w,h)->{
@@ -32,7 +34,7 @@ public final class NativePipeline implements RuntimeDriver.Pipeline {
                 sink.copy(eye,source,w,h);
             });
             consumed[0]=true;
-            ViewpointBackend.cameras(access,out,(center,yaw,pitch,fov)->camera.eyes(head,views,center,yaw,pitch,tracked)).render(drawer,original);
+            ViewpointBackend.cameras(access,out,(center,yaw,pitch,fov)->camera.eyes(head,views,center,yaw,pitch,tracked,viewpointvr.input.BodyTracking.offsetFor(frame(access,drawer)))).render(drawer,original);
             if(!out.published())throw new IllegalStateException("Native scene declined XR pair");
         },ui.image());
         }catch(Throwable error){if(!consumed[0])throw new RuntimeDriver.Unavailable(error);throw error;}

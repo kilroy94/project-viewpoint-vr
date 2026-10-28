@@ -18,7 +18,7 @@ public final class Main {
     /** Called by ZombieBuddy in the user's game only. Never invoked by offline tests. */
     public static synchronized void main(String[] args) {
         if(attempted) return; attempted=true;
-        System.out.println("[Project Viewpoint VR] Starting 0.10.0 gameplay prototype; start SteamVR before XR");
+        System.out.println("[Project Viewpoint VR] Starting 0.11.0 hybrid rig prototype; start SteamVR before XR");
         try {
             if(zombie.network.GameClient.client || zombie.network.GameServer.server) throw new IllegalStateException("Single player only");
             Class<?> drawer=Class.forName("viewpoint.SceneDrawer",false,Main.class.getClassLoader());
@@ -41,6 +41,7 @@ public final class Main {
                 @Override public void render(){action.run();}
             }));
             viewpointvr.input.InputBridge.install(new viewpointvr.input.NativeInput(owner));
+            viewpointvr.rig.RigBridge.install(new viewpointvr.rig.NativeRig(owner));
             runtime=new RuntimeDriver(new NativePipeline(access),captures,installed::ready,Main::stopKey,System::nanoTime);
             settings=new SettingsStore(output.resolve("settings.properties"));
             var turn=settings.turning();
@@ -94,6 +95,7 @@ public final class Main {
     public static String diagnosticStatus(){return ControllerDiagnostic.status();}
     public static void diagnosticEvent(String kind,String event,double value){ControllerDiagnostic.event(kind,event,value);}
     public static String controllers(double value){ControllerDiagnostic.cancel("Controller mode changed");viewpointvr.input.InputBridge.configure((int)value);return "Controllers: "+(int)value;}
+    public static String motionMelee(double mode){viewpointvr.melee.SwingInput.configure((int)mode);return viewpointvr.melee.SwingInput.status;}
     public static String gameplay(){ControllerDiagnostic.cancel("VR gameplay requested");viewpointvr.input.InputBridge.configure(3);return mode("XR_TRACKED");}
     public static String mode(String name){ControllerDiagnostic.cancel("Renderer mode changed");if(!name.equals("XR_TRACKED"))viewpointvr.input.InputBridge.configure(0);return runtime==null?status:runtime.mode(name);}
     public static String recenter(){return runtime==null?status:runtime.recenter();}
@@ -109,6 +111,6 @@ public final class Main {
     public static String requestCapture() { return captures==null?status:captures.request(); }
     public static String status() {
         if(installation!=null && !installation.ready()) return installation.failure()==null?status:"Disabled: "+installation.failure();
-        return runtime==null?status:runtime.status()+" | "+viewpointvr.input.InputBridge.status()+(settings!=null&&!settings.warning().isEmpty()?" | "+settings.warning():"");
+        return runtime==null?status:runtime.status()+" | "+viewpointvr.input.InputBridge.status()+" | "+viewpointvr.rig.RigBridge.status+" | "+viewpointvr.melee.SwingInput.status+(settings!=null&&!settings.warning().isEmpty()?" | "+settings.warning():"");
     }
 }

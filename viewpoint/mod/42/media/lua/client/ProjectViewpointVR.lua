@@ -94,7 +94,7 @@ local function controls()
         savedScale=ProjectViewpointVR.savedWorldScale()
     end
     if panel then panel:removeFromUIManager() end
-    panel=ISPanel:new(16,112,410,230)
+    panel=ISPanel:new(16,112,410,262)
     panel:initialise()
     panel.moveWithMouse=true
     panel:addToUIManager()
@@ -145,6 +145,8 @@ local function controls()
 
     local play=ISButton:new(6,200,398,24,"VR gameplay (tracked + native gamepad)",nil,function() if ProjectViewpointVR then ProjectViewpointVR.gameplay() end end)
     play:initialise();panel:addChild(play)
+    local melee=ISComboBox:new(6,232,398,24,nil,function(_,box) if ProjectViewpointVR then ProjectViewpointVR.motionMelee(box.selected-1) end end)
+    melee:initialise();melee:addOption("Motion melee: Off (native trigger)");melee:addOption("Motion melee: Diagnostics (no attacks)");melee:addOption("Motion melee: Hold right trigger + swing (native attacks)");melee.selected=1;panel:addChild(melee)
     local testButton=ISButton:new(6,168,260,24,"Open controller diagnostic",nil,function() if ProjectViewpointVR then openDiagnostic() end end)
     testButton:initialise();panel:addChild(testButton)
     local stopTest=ISButton:new(272,168,132,24,"Stop diagnostic",nil,function() if ProjectViewpointVR then ProjectViewpointVR.diagnosticStop() end end)

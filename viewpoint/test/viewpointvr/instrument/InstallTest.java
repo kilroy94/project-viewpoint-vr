@@ -59,6 +59,8 @@ public final class InstallTest {
         for(String name:GameplayTransform.TARGETS)try(var nativeJar=new JarFile(viewpointvr.input.ControllerInstallation.TARGETS.contains(name)?args[1]:args[0]);var in=nativeJar.getInputStream(nativeJar.getJarEntry(name+".class"))){
             byte[] patched=gameplay.transform(name,in.readAllBytes());rejects(()->gameplay.transform(name,patched));rejects(()->gameplay.transform(name+"Unknown",patched));
         }
+        var rig=new RigTransform(mod);
+        try(var nativeJar=new JarFile(args[0]);var in=nativeJar.getInputStream(nativeJar.getJarEntry(RigTransform.TARGET+".class"))){byte[] patched=rig.transform(in.readAllBytes());rejects(()->rig.transform(patched));}
         var locked=(Instrumentation)Proxy.newProxyInstance(loader,new Class<?>[]{Instrumentation.class},(p,m,a)->{
             if(m.getName().equals("isModifiableClass"))return false;return m.invoke(instrumentation,a);
         });

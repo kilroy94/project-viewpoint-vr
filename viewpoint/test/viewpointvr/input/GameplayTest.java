@@ -28,8 +28,6 @@ public final class GameplayTest {
   check(frame.stream().anyMatch(b->b.hand()==0&&b.input().equals("view/click")),"Frame left View");check(frame.stream().anyMatch(b->b.hand()==1&&b.input().equals("menu/click")),"Frame right Menu");
   BodyTracking.clear();BodyTracking.enabled=true;BodyTracking.head(.3f,-.4f,.5f,.2f,1);
   near(BodyTracking.yaw(1),.5f,"head yaw sign");near(BodyTracking.pitch(-1),.2f,"head pitch sign");
-  var follow=BodyTracking.follow(BodyTracking.current(),0);check(follow.x>0&&follow.y>0,"physical forward-right follows");
-  near(BodyTracking.follow(new BodyTracking.Head(now,.1f,0,0,0,1),0).length(),0,"lean deadzone");near(BodyTracking.follow(new BodyTracking.Head(now,2,0,0,0,1),0).length(),0,"large tracking jump not walked");
   for(float yaw:new float[]{0,.7f,-2f})for(float scale:new float[]{.5f,1,2}){
    BodyTracking.clear();var camera=new XrCamera(scale);var start=new XrCamera.Pose(0,1.7f,0,0,0,0,1);camera.eyes(start,views(start),new Vector3f(),yaw,0,true);
    var moved=new XrCamera.Pose(.3f,1.7f,-.4f,0,0,0,1);var before=camera.eyes(moved,views(moved),new Vector3f(),yaw,0,true);

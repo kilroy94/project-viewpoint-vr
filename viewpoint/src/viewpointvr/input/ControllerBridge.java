@@ -11,7 +11,7 @@ import zombie.characters.IsoPlayer;
 public final class ControllerBridge {
     public static final int SLOT=15;
     public static final String GUID="56505652000000000000000000000001";
-    public static volatile boolean installed;
+    public static volatile boolean installed,assigned;
     public static volatile int mode; // 0 Off, 2 gamepad (native bridge routing)
     private static final GamepadMapper mapper=new GamepadMapper();
     public static synchronized void invalidateMapping(){mapper.invalidate();}
@@ -53,7 +53,7 @@ public final class ControllerBridge {
     }
     public static synchronized void poll(GamepadState[] states) {
         if(virtual==null) return;
-        var pad=mapper.map(InputBridge.state,System.nanoTime(),mode==2&&!retiring&&!detaching&&InputBridge.gamepadReady());
+        var pad=mapper.map(InputBridge.state,System.nanoTime(),mode==2&&!retiring&&!detaching&&InputBridge.gamepadReady(),viewpointvr.melee.SwingInput.trigger(System.nanoTime()));
         GamepadState target=states[SLOT];
         for(int i=0;i<6;i++) target.axesButtons.axes(i,pad.axes()[i]);
         for(int i=0;i<15;i++) target.axesButtons.buttons(i,(byte)(pad.buttons()[i]?1:0));
@@ -62,6 +62,7 @@ public final class ControllerBridge {
     }
     /** Runs after native update/swap, exclusively on the game thread. */
     public static synchronized void consumed(Input input) {
+        assigned=virtual!=null&&IsoPlayer.players[0]!=null&&IsoPlayer.players[0].getJoypadBind()==SLOT&&!retiring;
         if(virtual==null) return;
         if(retiring) {
             if(!detaching) {

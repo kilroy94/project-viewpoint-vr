@@ -11,9 +11,10 @@ import viewpointvr.instrument.*;
 /** All-target activation; a failed or incompatible later transformation permanently disarms capture. */
 public final class Installation implements ClassFileTransformer,AutoCloseable {
     private static final List<String> RENDER_TARGETS=java.util.stream.Stream.concat(java.util.stream.Stream.of(EntryTransform.TARGET,
-            "viewpoint/render/WorldRenderer","viewpoint/render/FarPass","viewpoint/render/TemporalPass","viewpoint/render/FrameEnd","viewpoint/render/SkyPass"),java.util.stream.Stream.concat(VisibilityTransform.TARGETS.stream(),UiTransform.TARGETS.stream())).toList();
+            RigTransform.TARGET,"viewpoint/render/WorldRenderer","viewpoint/render/FarPass","viewpoint/render/TemporalPass","viewpoint/render/FrameEnd","viewpoint/render/SkyPass"),java.util.stream.Stream.concat(VisibilityTransform.TARGETS.stream(),UiTransform.TARGETS.stream())).toList();
     public static final List<String> TARGETS=java.util.stream.Stream.concat(RENDER_TARGETS.stream(),GameplayTransform.TARGETS.stream()).toList();
     private final GameplayTransform gameplay;
+    private final RigTransform rig;
     private final Instrumentation instrumentation;
     private final ClassLoader loader;
     private final EntryTransform entry;
@@ -27,7 +28,7 @@ public final class Installation implements ClassFileTransformer,AutoCloseable {
     private boolean registered;
     private Installation(Instrumentation instrumentation,ClassLoader loader,Path jar,Path game) throws Exception {
         this.instrumentation=Objects.requireNonNull(instrumentation); this.loader=loader;
-        gameplay=new GameplayTransform(jar,game,loader);
+        rig=new RigTransform(jar);gameplay=new GameplayTransform(jar,game,loader);
         entry=EntryTransform.fromPinnedJar(jar); stages=StageTransform.fromPinnedJar(jar);visibility=new VisibilityTransform(jar);ui=new UiTransform(jar);
         if(!instrumentation.isRetransformClassesSupported()) throw new IllegalStateException("Retransformation unavailable");
         for(Class<?> hook:List.of(FrameBoundary.class,StageHooks.class,Visibility.class,UiBridge.class,viewpointvr.input.InputBridge.class))
@@ -40,6 +41,7 @@ public final class Installation implements ClassFileTransformer,AutoCloseable {
         }
         new ViewpointBackend.Access(loader);
         new viewpointvr.input.NativeInput(loader);
+        new viewpointvr.rig.NativeRig(loader);
         Class.forName("viewpoint.platform.SettingsWindow",false,loader).getMethod("panel",String.class,Runnable.class);
     }
     public static Installation install(Instrumentation instrumentation,ClassLoader loader,Path jar,Path game) throws Exception {
@@ -60,7 +62,7 @@ public final class Installation implements ClassFileTransformer,AutoCloseable {
         if(!TARGETS.contains(name)) return null;
         try {
             if(owner!=loader || type!=targets[TARGETS.indexOf(name)]) throw new IllegalStateException("Wrong transformation owner");
-            byte[] result=GameplayTransform.TARGETS.contains(name)?gameplay.transform(name,source):name.equals(EntryTransform.TARGET)?entry.transform(name,source):VisibilityTransform.TARGETS.contains(name)?visibility.transform(name,source):UiTransform.TARGETS.contains(name)?ui.transform(name,source):stages.transform(name,source);
+            byte[] result=name.equals(RigTransform.TARGET)?rig.transform(source):GameplayTransform.TARGETS.contains(name)?gameplay.transform(name,source):name.equals(EntryTransform.TARGET)?entry.transform(name,source):VisibilityTransform.TARGETS.contains(name)?visibility.transform(name,source):UiTransform.TARGETS.contains(name)?ui.transform(name,source):stages.transform(name,source);
             var verifier=ClassFile.of(ClassFile.ClassHierarchyResolverOption.of(ClassHierarchyResolver.ofResourceParsing(loader)));
             var errors=verifier.verify(result);
             if(!errors.isEmpty()) throw new IllegalStateException("Invalid transformed class: "+errors);

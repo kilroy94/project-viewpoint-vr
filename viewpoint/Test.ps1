@@ -51,7 +51,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Gameplay look fixture compilation failed' }
 & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp "$tests;$classes;$gameCopy;$loaderCopy" viewpointvr.instrument.GameplayFixtureTest $lookFixtures
 if ($LASTEXITCODE -ne 0) { throw 'Gameplay transformed fixtures failed' }
 $testClasspath = "$tests;$classes;$gameCopy;$loaderCopy;$xrJar"
-foreach ($test in @('viewpointvr.diagnostic.ControllerDiagnosticTest','viewpointvr.diagnostic.SettingsStoreTest','viewpointvr.input.GameplayTest','viewpointvr.input.TurningTest','viewpointvr.input.ControllerTest','viewpointvr.UiBridgeTest','viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
+foreach ($test in @('viewpointvr.diagnostic.ControllerDiagnosticTest','viewpointvr.diagnostic.SettingsStoreTest','viewpointvr.input.RoomMotionTest','viewpointvr.rig.RigTest','viewpointvr.melee.SwingTest','viewpointvr.input.GameplayTest','viewpointvr.input.TurningTest','viewpointvr.input.ControllerTest','viewpointvr.UiBridgeTest','viewpointvr.StereoCameraTest','viewpointvr.StereoFrameTest','viewpointvr.instrument.EntryFixtureTest','viewpointvr.xr.XrCameraTest','viewpointvr.diagnostic.RuntimeDriverTest')) {
     & "$JavaHome/bin/java.exe" -Xverify:all -ea -cp $testClasspath $test $fixtures
     if ($LASTEXITCODE -ne 0) { throw "Failed: $test" }
 }

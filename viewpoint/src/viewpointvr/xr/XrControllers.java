@@ -77,7 +77,7 @@ public final class XrControllers implements AutoCloseable {
   for(int h=0;h<2;h++){
    var current=XrInteractionProfileState.calloc(s).type$Default();check(xrGetCurrentInteractionProfile(session,paths[h],current),"current controller profile");long value=current.interactionProfile();
    if(value==lastProfiles[h])continue;lastProfiles[h]=value;String name="none";
-   if(value!=XR_NULL_PATH){var count=s.mallocInt(1);check(xrPathToString(instance,value,count,null),"profile length");var string=s.malloc(count.get(0));check(xrPathToString(instance,value,count,string),"profile name");name=org.lwjgl.system.MemoryUtil.memUTF8(string);}
+   if(value!=XR_NULL_PATH){var count=s.mallocInt(1);check(xrPathToString(instance,value,count,null),"profile length");var string=s.malloc(count.get(0));check(xrPathToString(instance,value,count,string),"profile name");name=org.lwjgl.system.MemoryUtil.memUTF8(string).replace("\0","");}
    OpenXrSession.log("Controller profile "+(h==0?"left":"right")+": "+name);
   }
  }

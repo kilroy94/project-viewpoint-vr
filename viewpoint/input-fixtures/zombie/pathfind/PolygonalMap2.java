@@ -1,0 +1,2 @@
+package zombie.pathfind;
+public final class PolygonalMap2 {public static final PolygonalMap2 instance=new PolygonalMap2();public static int queries;public static boolean blocked;public org.joml.Vector2f resolveCollision(zombie.characters.IsoGameCharacter candidate,float x,float y,org.joml.Vector2f out){queries++;var p=(zombie.characters.IsoPlayer)candidate;return out.set(blocked?p.x:x,blocked?p.y:y);}}

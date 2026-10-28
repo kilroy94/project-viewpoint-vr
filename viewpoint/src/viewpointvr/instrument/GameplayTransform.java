@@ -8,7 +8,7 @@ import viewpointvr.input.ControllerInstallation;
 import viewpointvr.diagnostic.BinaryPins;
 /** Exact-binary, consumer-side look hooks and the inherited native controller overlay. */
 public final class GameplayTransform {
- public static final List<String> LOOK=List.of("viewpoint/input/FreeLook","viewpoint/input/CrosshairAim","viewpoint/input/Controls","viewpoint/input/PadLook");
+ public static final List<String> LOOK=List.of("viewpoint/input/FreeLook","viewpoint/input/CrosshairAim","viewpoint/input/Controls");
  public static final List<String> TARGETS=java.util.stream.Stream.concat(LOOK.stream(),ControllerInstallation.TARGETS.stream()).toList();
  private final Map<String,byte[]> expected=new HashMap<>();private final ClassLoader loader;
  public GameplayTransform(Path viewpoint,Path game,ClassLoader loader)throws Exception{
@@ -35,14 +35,11 @@ public final class GameplayTransform {
      if(op==FRETURN&&(name.endsWith("/FreeLook")&&method.equals("yaw")||name.endsWith("/CrosshairAim")&&(method.equals("yaw")||method.equals("pitch")))){
       super.visitMethodInsn(INVOKESTATIC,"viewpointvr/input/BodyTracking",method,"(F)F",false);hits[0]++;
      }
-     if(op==IRETURN&&name.endsWith("/PadLook")&&method.equals("move")){
-      super.visitMethodInsn(INVOKESTATIC,"viewpointvr/input/BodyTracking","ownsFollow","()Z",false);super.visitInsn(ICONST_1);super.visitInsn(IXOR);super.visitInsn(IAND);hits[0]++;
-     }
      super.visitInsn(op);
     }
    };
   }},0);
-  int expectedHits=switch(name){case "viewpoint/input/FreeLook"->1;case "viewpoint/input/CrosshairAim"->2;case "viewpoint/input/Controls"->1;case "viewpoint/input/PadLook"->2;default->0;};
+  int expectedHits=switch(name){case "viewpoint/input/FreeLook"->1;case "viewpoint/input/CrosshairAim"->2;case "viewpoint/input/Controls"->1;default->0;};
   if(hits[0]!=expectedHits)throw new IllegalArgumentException("Gameplay anchor count "+name+": "+hits[0]);return writer.toByteArray();
  }
 }
