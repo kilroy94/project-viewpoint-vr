@@ -4,6 +4,8 @@ A new Viewpoint-based VR project for Project Zomboid, forked from the preserved 
 
 **Current milestone: hybrid rig prototype, version 0.11.0.** Native stick movement now coexists with independent physical movement through native collision queries, tracked arms/held items and opt-in swing-triggered native attacks. The user confirmed stereo/head tracking and thumbstick walking, but 0.10.0 physical body following failed. This build addresses its input/movement coupling; the new rig and movement still need in-game validation. See [hybrid rig design and limits](viewpoint/HYBRID-RIG.md). Renderer/controller activation and motion attacks start Off; turning preferences and world scale persist.
 
+The latest 0.11.0 test never received XR input focus, leaving movement/hands/swings blocked. A reversible SteamVR automatic-theater setting correction has been applied locally; [focus investigation and next test](viewpoint/FOCUS.md). This needs user confirmation before judging the rig.
+
 **Targets Viewpoint 0.1.6.1.** Development follows the latest available Viewpoint; older versions are no longer supported. Exact binary checks remain in place so an unaudited future update cannot silently run incompatible hooks. Turn Viewpoint frame generation Off for stereo/XR. Vendor temporal upscaling is inactive during stereo, and the borrowed eye images use regular perspective projection. See the [compatibility review](viewpoint/COMPATIBILITY.md).
 
 The opt-in [controller diagnostic](viewpoint/DIAGNOSTIC.md) runs against dedicated Zomboid and Viewpoint UI widgets and writes PASS/FAIL/NEEDS VISUAL CHECK text reports. Its first in-game run remains pending.

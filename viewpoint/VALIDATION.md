@@ -1,5 +1,13 @@
 # Viewpoint baseline validation
 
+## User-run 0.11.0 failure: focus investigation (2026-10-28)
+
+The user reports physical movement, arms and swings still do not work. The latest log confirms 0.11.0, successful profile suggestions and stereo submission, but no FOCUSED/state 5 event, no controller-profile sampling, 122 blocked Body windows, no Rig/Melee events and no owned-pad registration. Native pad 0 remains a separate input path. The user already connected with Stream VR Without Game and launched Zomboid on the PC.
+
+Read-only SteamVR logs show Zomboid recognized as an OpenXR scene and Frame bindings loaded, plus selection/creation of the Zomboid desktop-game overlay. The installed default has `dashboard.autoShowGameTheater=true`; the saved configuration had no override. The local dashboard code/UI strings verify the Advanced **Present Non-VR Applications on Theater Screen Upon Launch** setting.
+
+With both applications stopped, applied the reversible override `dashboard.autoShowGameTheater=false`. Preserved the original raw configuration in ignored workspace evidence, verified the before-hash before writing and verified that all other parsed settings remained identical. This is a global SteamVR automatic-theater setting; no game/mod/Workshop/user-data files or runtime registry entries were changed. No game or SteamVR launch, no runtime-code change, no new mod package and no new live success are claimed. A focused user-run session is required next; see [FOCUS.md](FOCUS.md).
+
 ## Hybrid rig prototype: 0.11.0 (2026-10-27)
 
 **Live evidence:** the user confirms 0.10.0 thumbstick walking worked, while physical movement did not move the avatar. The read-only console shows successful Frame profile suggestions/selection, both hands tracked and stick/trigger input. It has no active Body pass or ID-15 assignment and later reports native Viewpoint activation of pad 0. The precise gate at each attempted step is not logged in 0.10.0, so do not attribute every failure solely to missing assignment. The physical-follow failure remains a real user-reported regression despite the prior synthetic checks.

@@ -53,7 +53,7 @@ def main():
                 package.write(source, base + source.relative_to(HERE / "mod").as_posix())
         package.writestr(base + "42/media/java/client/ProjectViewpointVR.jar", jar_bytes)
         package.write(HERE / "TESTING.md", base + "README.md")
-        for guide in ["TESTING.md", "INPUT.md", "HYBRID-RIG.md", "DIAGNOSTIC.md"]: package.write(HERE / guide, base + guide)
+        for guide in ["TESTING.md", "INPUT.md", "HYBRID-RIG.md", "DIAGNOSTIC.md", "FOCUS.md"]: package.write(HERE / guide, base + guide)
         for license in sorted((HERE / "licenses").glob("*")): package.write(license,base+"licenses/"+license.name)
         package.writestr(base + "SHA256.txt", jar_hash + "  42/media/java/client/ProjectViewpointVR.jar\n")
     with zipfile.ZipFile(archive) as check:
